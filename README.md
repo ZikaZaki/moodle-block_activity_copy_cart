@@ -1,11 +1,9 @@
 # Activity Copy Cart
 
-<div align="center" style="margin-bottom: 16px;">
-  <img src="docs/assets/banner/banner.png" alt="Activity Copy Cart Banner" style="border-radius: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 100%;">
-</div>
+![Activity Copy Cart Banner](docs/assets/banner/banner.png)
 
 <p align="center">
-  <a href="https://github.com/ZikaZaki/moodle-block_activity_copy_cart/actions/workflows/ci.yml"><img src="https://github.com/ZikaZaki/moodle-block_activity_copy_cart/actions/workflows/ci.yml/badge.svg" alt="Moodle Plugin CI"></a>
+  <a href="https://github.com/ZikaZaki/moodle-block_activity_copy_cart/actions/workflows/ci.yml"><img src="https://github.com/ZikaZaki/moodle-block_activity_copy_cart/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/ZikaZaki/moodle-block_activity_copy_cart/releases/latest"><img src="https://img.shields.io/github/v/release/ZikaZaki/moodle-block_activity_copy_cart" alt="Latest Release"></a>
   <img src="https://img.shields.io/badge/Moodle-4.1%2B-orange" alt="Moodle">
   <img src="https://img.shields.io/badge/PHP-8.1%20%7C%208.2-blue" alt="PHP">
