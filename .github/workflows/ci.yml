@@ -1,4 +1,5 @@
-name: Integration & Unit test (Main)
+# Continuous Integration workflow (Integration & Unit test).
+name: ci
 
 on:
   pull_request:

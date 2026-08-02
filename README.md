@@ -3,6 +3,7 @@
 ![Activity Copy Cart Banner](docs/assets/banner/banner.png)
 
 [![Moodle Plugin CI](https://github.com/ZikaZaki/moodle-block_activity_copy_cart/actions/workflows/ci.yml/badge.svg)](https://github.com/ZikaZaki/moodle-block_activity_copy_cart/actions/workflows/ci.yml)
+[![Latest Release](https://img.shields.io/github/v/release/ZikaZaki/moodle-block_activity_copy_cart)](https://github.com/ZikaZaki/moodle-block_activity_copy_cart/releases/latest)
 ![Moodle](https://img.shields.io/badge/Moodle-4.1%2B-orange)
 ![PHP](https://img.shields.io/badge/PHP-8.1%20%7C%208.2-blue)
 ![License](https://img.shields.io/badge/license-GPL--3.0-blue)
