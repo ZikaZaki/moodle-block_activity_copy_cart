@@ -1,4 +1,5 @@
-name: Publish to Moodle
+# Publish to Moodle.org when a new release is published on GitHub.
+name: release
 
 on:
   release:
