@@ -1,5 +1,5 @@
 # Continuous Integration workflow (Integration & Unit test).
-name: ci
+name: CI
 
 on:
   pull_request:

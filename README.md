@@ -1,12 +1,16 @@
 # Activity Copy Cart
 
-![Activity Copy Cart Banner](docs/assets/banner/banner.png)
+<div align="center" style="margin-bottom: 16px;">
+  <img src="docs/assets/banner/banner.png" alt="Activity Copy Cart Banner" style="border-radius: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 100%;">
+</div>
 
-[![Moodle Plugin CI](https://github.com/ZikaZaki/moodle-block_activity_copy_cart/actions/workflows/ci.yml/badge.svg)](https://github.com/ZikaZaki/moodle-block_activity_copy_cart/actions/workflows/ci.yml)
-[![Latest Release](https://img.shields.io/github/v/release/ZikaZaki/moodle-block_activity_copy_cart)](https://github.com/ZikaZaki/moodle-block_activity_copy_cart/releases/latest)
-![Moodle](https://img.shields.io/badge/Moodle-4.1%2B-orange)
-![PHP](https://img.shields.io/badge/PHP-8.1%20%7C%208.2-blue)
-![License](https://img.shields.io/badge/license-GPL--3.0-blue)
+<p align="center">
+  <a href="https://github.com/ZikaZaki/moodle-block_activity_copy_cart/actions/workflows/ci.yml"><img src="https://github.com/ZikaZaki/moodle-block_activity_copy_cart/actions/workflows/ci.yml/badge.svg" alt="Moodle Plugin CI"></a>
+  <a href="https://github.com/ZikaZaki/moodle-block_activity_copy_cart/releases/latest"><img src="https://img.shields.io/github/v/release/ZikaZaki/moodle-block_activity_copy_cart" alt="Latest Release"></a>
+  <img src="https://img.shields.io/badge/Moodle-4.1%2B-orange" alt="Moodle">
+  <img src="https://img.shields.io/badge/PHP-8.1%20%7C%208.2-blue" alt="PHP">
+  <img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License">
+</p>
 
 A course block that lets teachers cart up activities via drag-and-drop, fine-tune how each one should copy, and send them into one or more target courses in a single batch — without leaving the course page.
 
