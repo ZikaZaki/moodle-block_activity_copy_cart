@@ -1,0 +1,67 @@
+<div class="activitycopycart-target-selection row">
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <div class="card-header">
+                {{#str}} cartsummary, block_activity_copy_cart, {{cartcount}} {{/str}}
+            </div>
+            <div class="card-body">
+                <div class="activitycopycart-cart-summary">
+                    <ul class="list-group list-group-flush">
+                        {{#cartitems}}
+                        <li class="list-group-item">
+                            <div class="d-flex align-items-center">
+                                <img src="{{iconurl}}" class="activitycopycart-item-icon mr-2 me-2" alt="">
+                                <div class="overflow-hidden">
+                                    <div class="text-truncate">{{{name}}}</div>
+                                    <small class="text-muted">{{sectionname}}</small>
+                                </div>
+                            </div>
+                            {{#badges}}
+                            <span class="badge badge-info mr-1 mt-1">{{.}}</span>
+                            {{/badges}}
+                        </li>
+                        {{/cartitems}}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        {{^reviewing}}
+        {{{formhtml}}}
+        {{/reviewing}}
+        {{#reviewing}}
+        <div class="card mb-3">
+            <div class="card-header">
+                {{#str}} selectedcourses, block_activity_copy_cart, {{targetcount}} {{/str}}
+            </div>
+            <div class="card-body">
+                <div class="activitycopycart-target-summary">
+                    <ul class="list-group list-group-flush">
+                        {{#targetcourses}}
+                        <li class="list-group-item">{{{fullname}}}</li>
+                        {{/targetcourses}}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <form method="post" action="{{pageurl}}" class="d-inline-block ml-2 ms-2">
+            <input type="hidden" name="sesskey" value="{{sesskey}}">
+            <input type="hidden" name="confirmcopy" value="1">
+            <button type="submit" class="btn btn-primary">
+                {{#str}} confirm {{/str}}
+            </button>
+        </form>
+        <a href="{{pageurl}}" class="btn btn-secondary">
+            {{#str}} backtoselection, block_activity_copy_cart {{/str}}
+        </a>
+        <form method="post" action="{{pageurl}}" class="d-inline-block ml-2 ms-2">
+            <input type="hidden" name="sesskey" value="{{sesskey}}">
+            <input type="hidden" name="cancelcopy" value="1">
+            <button type="submit" class="btn btn-secondary">
+                {{#str}} cancel {{/str}}
+            </button>
+        </form>
+        {{/reviewing}}
+    </div>
+</div>

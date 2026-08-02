@@ -1,0 +1,27 @@
+<div class="activitycopycart-cart-item border p-2 mb-1 bg-white text-dark rounded d-flex justify-content-between align-items-center"
+     data-region="cart-item"
+     data-cmid="{{cmid}}">
+    <div class="d-flex align-items-center overflow-hidden">
+        <span class="activitycopycart-drag-handle">{{> core/drag_handle }}</span>
+        <div class="activity-icon activityiconcontainer smaller {{purpose}} mr-2 me-2">
+            <img src="{{iconurl}}" class="activitycopycart-item-icon activityicon" alt="Activity icon">
+        </div>
+        <span class="text-truncate" data-region="cart-item-name" title="{{{cmname}}}">{{{cmname}}}</span>
+    </div>
+    <div class="btn-group btn-group-sm ml-2 ms-2">
+        <button type="button"
+                class="btn btn-link p-1 me-1 text-primary"
+                data-action="settings"
+                title="{{#str}} settings, block_activity_copy_cart {{/str}}"
+                aria-label="{{#str}} settings, block_activity_copy_cart {{/str}}">
+            <i class="fa fa-cog" aria-hidden="true"></i>
+        </button>
+        <button type="button"
+                class="btn btn-link p-1 text-primary"
+                data-action="delete"
+                title="{{#str}} delete {{/str}}"
+                aria-label="{{#str}} delete {{/str}}">
+            <i class="fa fa-trash" aria-hidden="true"></i>
+        </button>
+    </div>
+</div>

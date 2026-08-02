@@ -1,0 +1,30 @@
+<div id="activitycopycart-root" class="activitycopycart-container p-1 mt-2 rounded">
+    <noscript>
+        <div class="alert alert-warning">{{#str}} noscript, block_activity_copy_cart {{/str}}</div>
+    </noscript>
+    <div class="d-flex justify-content-end p-1 mb-1">
+        <button type="button" id="activitycopycart-cart-clear-btn" class="btn btn-link small icon-no-margin p-0"
+                {{^cartitemshtml}}style="display: none;" disabled{{/cartitemshtml}}>
+            <i class="fa fa-undo" aria-hidden="true"></i>
+            {{clearcartbtntext}}
+        </button>
+    </div>
+    <div data-region="cart-area" id="activitycopycart-cart" class="p-2 mb-2 rounded activitycopycart-dropzone">
+        <div data-region="cart-items" id="activitycopycart-cart-items-list">
+            {{{cartitemshtml}}}
+            <p data-region="cart-empty-message"
+               class="text-muted text-center small pt-6"
+               {{#cartitemshtml}}style="display: none;"{{/cartitemshtml}}>{{cartemptytext}}</p>
+        </div>
+    </div>
+    <div class="activitycopycart-cart-actions mt-3">
+        <form action="{{copyurl}}" method="POST" id="activitycopycart-cart-form">
+            <input type="hidden" name="sesskey" value="{{sesskey}}">
+            {{{hiddenfieldshtml}}}
+            <button type="submit" id="activitycopycart-cart-copy-btn" class="btn btn-primary w-100" disabled>
+                <i class="fa fa-copy" aria-hidden="true"></i>
+                {{copyactivitiesbtntext}}
+            </button>
+        </form>
+    </div>
+</div>

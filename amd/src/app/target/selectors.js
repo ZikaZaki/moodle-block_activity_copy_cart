@@ -1,0 +1,15 @@
+export default {
+    TREE_CONTAINER: '[data-region="target-tree"]',
+    TREE_ROOT: '[data-region="tree-root"]',
+    TREE_CATEGORY_NODE: '[data-region="category-node"]',
+    TREE_CATEGORY_CHILDREN: '[data-region="category-children"]',
+    TREE_COURSE_NODE: '[data-region="course-node"]',
+    TREE_TOGGLE: '[data-action="toggle-category"]',
+    TREE_CHECKBOX: '.activitycopycart-tree-checkbox',
+    TREE_CATEGORY_CHECKBOX: '[data-action="select-category"]',
+    TREE_COURSE_CHECKBOX: '[data-action="select-course"]',
+    TREE_SEARCH_INPUT: '[data-region="tree-search-input"]',
+    TREE_SEARCH_RESULTS: '[data-region="tree-search-results"]',
+    TREE_SEARCH_RESULTS_LIST: '[data-region="search-results-list"]',
+    TREE_SEARCH_NO_RESULTS: '[data-region="search-no-results"]',
+};

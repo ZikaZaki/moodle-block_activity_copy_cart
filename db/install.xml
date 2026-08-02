@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="blocks/activity_copy_cart/db" VERSION="20260731" COMMENT="XMLDB file for Moodle blocks/activity_copy_cart"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+>
+  <TABLES>
+    <TABLE NAME="block_activity_copy_cart_job" COMMENT="One row per 'Copy Activities' click - the async copy job's own record of what to copy and how far it's gotten, entirely independent of $SESSION once queued.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The teacher who started the copy - the adhoc task runs as this user (set_userid()), and this is also who the job belongs to for privacy/ownership purposes."/>
+        <FIELD NAME="sourcecourseid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="cart" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="JSON snapshot of the parsed cart (see cart\parser), so the job is self-sufficient once queued."/>
+        <FIELD NAME="targetcourseids" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="JSON array of already-validated target course ids (see target\course_validator::filter())."/>
+        <FIELD NAME="status" TYPE="char" LENGTH="30" NOTNULL="true" SEQUENCE="false" DEFAULT="pending" COMMENT="pending|running|completed|completed_with_errors|failed"/>
+        <FIELD NAME="totalunits" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" DEFAULT="0" COMMENT="count(cart items) * count(target courses), computed once at creation."/>
+        <FIELD NAME="completedunits" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" DEFAULT="0"/>
+        <FIELD NAME="failuremessage" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Set only when status = failed: why the whole job (not just one unit) stopped."/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="userid_idx" UNIQUE="false" FIELDS="userid"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="block_activity_copy_cart_bkp" COMMENT="One row per distinct cart item in a job - each item is backed up exactly once (see copy\backup), then every target course's restore (copy\restore) reuses the same backupid, instead of re-backing up the same activity once per target course.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="jobid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="sourcecmid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="backupid" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="backup_controller's own id once the backup succeeds; null until then."/>
+        <FIELD NAME="status" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" DEFAULT="pending" COMMENT="pending|done|failed"/>
+        <FIELD NAME="message" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Why the backup failed; empty otherwise."/>
+        <FIELD NAME="timecleaned" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Set once every target course has consumed this backup and its temp files were deleted (backup_helper::delete_backup_dir())."/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="jobid" TYPE="foreign" FIELDS="jobid" REFTABLE="block_activity_copy_cart_job" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="jobid_cmid_idx" UNIQUE="true" FIELDS="jobid, sourcecmid"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="block_activity_copy_cart_res" COMMENT="One row per (cart item x target course) unit once processed - drives both 'what's left to do' (idempotent chunk selection) and the progress page's log.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="jobid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="sourcecmid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="targetcourseid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="newcmid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="The copied activity's cmid in the target course, if the copy succeeded."/>
+        <FIELD NAME="status" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="success|skipped|failed"/>
+        <FIELD NAME="message" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Why it was skipped or failed; empty for success."/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="jobid" TYPE="foreign" FIELDS="jobid" REFTABLE="block_activity_copy_cart_job" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="jobid_idx" UNIQUE="false" FIELDS="jobid"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>

@@ -1,0 +1,26 @@
+<div class="activitycopycart-target-tree" data-region="target-tree" data-source-course-id="{{sourcecourseid}}">
+    <div class="activitycopycart-tree-search mb-2">
+        <label for="activitycopycart-tree-search-input" class="sr-only visually-hidden">
+            {{#str}} searchcourses, block_activity_copy_cart {{/str}}
+        </label>
+        <input type="search"
+               id="activitycopycart-tree-search-input"
+               class="form-control"
+               data-region="tree-search-input" autocomplete="off"
+               placeholder="{{#str}} searchcourses, block_activity_copy_cart {{/str}}">
+    </div>
+    <div class="activitycopycart-tree-search-results" data-region="tree-search-results" hidden>
+        <ul class="list-unstyled" data-region="search-results-list"></ul>
+        <p class="text-muted small mb-0" data-region="search-no-results" hidden>
+            {{#str}} nosearchresults, block_activity_copy_cart {{/str}}
+        </p>
+    </div>
+    <ul class="activitycopycart-tree-root list-unstyled mb-0" data-region="tree-root" role="tree">
+        {{#rootcategories}}
+        {{> block_activity_copy_cart/target/category }}
+        {{/rootcategories}}
+        {{^rootcategories}}
+        <li class="text-muted small">{{#str}} nocategoriesavailable, block_activity_copy_cart {{/str}}</li>
+        {{/rootcategories}}
+    </ul>
+</div>

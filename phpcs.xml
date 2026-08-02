@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<ruleset name="block_activity_copy_cart">
+    <description>Coding standard for block_activity_copy_cart - extends Moodle's own standard, provided by moodlehq/moodle-cs and used by moodle-plugin-ci's codechecker step.</description>
+
+    <rule ref="moodle"/>
+
+    <file>.</file>
+
+    <exclude-pattern>*/amd/build/*</exclude-pattern>
+    <exclude-pattern>*/node_modules/*</exclude-pattern>
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+</ruleset>

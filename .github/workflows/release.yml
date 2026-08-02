@@ -1,0 +1,70 @@
+name: Publish to Moodle
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    env:
+      # Plugin's frankenstyle name here (e.g., block_activity_copy_cart)
+      PLUGIN_NAME: block_activity_copy_cart
+      # The plugin name without the prefix type
+      FOLDER_NAME: activity_copy_cart
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build plugin ZIP
+        run: |
+          # Create a temporary directory structure
+          mkdir -p build/$FOLDER_NAME
+
+          # Sync files into the folder, excluding dev and test directories
+          rsync -a ./ build/$FOLDER_NAME/ \
+            --exclude='/build' \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='tests' \
+            --exclude='docs' \
+            --exclude='.eslintrc' \
+            --exclude='.eslintignore' \
+            --exclude='.stylelintrc' \
+            --exclude='Gruntfile.js' \
+            --exclude='package.json' \
+            --exclude='package-lock.json'
+
+          # Create the ZIP file
+          cd build
+          zip -r $PLUGIN_NAME.zip $FOLDER_NAME
+
+      - name: Upload ZIP to GitHub Release
+        id: upload_zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Upload the generated ZIP to the current GitHub release
+          gh release upload ${{ github.event.release.tag_name }} build/$PLUGIN_NAME.zip
+
+          # Construct the public URL for the ZIP file
+          ZIP_URL="https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/$PLUGIN_NAME.zip"
+          echo "ZIP_URL=$ZIP_URL" >> $GITHUB_ENV
+
+      - name: Publish to Moodle.org
+        run: |
+          curl -X POST "https://moodle.org/webservice/rest/server.php" \
+            -d "wstoken=${{ secrets.MOODLE_ORG_TOKEN }}" \
+            -d "wsfunction=local_plugins_add_version" \
+            -d "moodlewsrestformat=json" \
+            -d "frankenstyle=$PLUGIN_NAME" \
+            -d "zipurl=$ZIP_URL" \
+            -d "vcssystem=github" \
+            -d "vcsrepositoryurl=https://github.com/${{ github.repository }}" \
+            -d "vcstag=${{ github.event.release.tag_name }}" \
+            -d "changelogurl=https://github.com/${{ github.repository }}/releases/tag/${{ github.event.release.tag_name }}"

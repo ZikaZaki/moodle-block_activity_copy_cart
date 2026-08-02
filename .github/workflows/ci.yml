@@ -1,0 +1,137 @@
+name: Integration & Unit test (Main)
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  PHPUnit:
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.experimental || false }}
+    strategy:
+      matrix:
+        os: [ubuntu-22.04]
+        php: [8.3, 8.4]
+        db: [mysqli]
+        moodle: [MOODLE_500_STABLE, main]
+        experimental: [false]
+        # Exclude combinations that don't match modern Moodle baseline rules
+        exclude:
+          # Moodle main branch requires PHP 8.4+ baseline by default
+          - os: ubuntu-22.04
+            php: 8.3
+            db: mysqli
+            moodle: main
+            experimental: false
+
+        # Include supported modern configurations and experimental targets
+        include:
+          - os: ubuntu-22.04
+            php: 8.4
+            db: mysqli
+            moodle: main
+            experimental: true
+          # Cross-database compatibility checks for modern versions
+          - os: ubuntu-22.04
+            php: 8.4
+            db: pgsql
+            moodle: MOODLE_500_STABLE
+            experimental: false
+
+    steps:
+      - name: Setting up DB mysql
+        if: ${{ matrix.db == 'mysqli' }}
+        uses: ZikaZaki/mysql-action@tmpfs-and-docker-patch
+        with:
+          collation server: utf8mb4_unicode_ci
+          mysql version: 8.4
+          mysql database: test
+          mysql user: test
+          mysql password: test
+          use tmpfs: true
+
+      - name: Setting up DB pgsql
+        if: ${{ matrix.db == 'pgsql' }}
+        uses: m4nu56/postgresql-action@v1
+        with:
+          postgresql version: 16
+          postgresql db: test
+          postgresql user: test
+          postgresql password: test
+
+      - name: Setting up PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          ini-values: 'max_input_vars=5000'
+
+      - name: Checking out code from moodle/moodle
+        uses: actions/checkout@v4
+        with:
+          repository: moodle/moodle
+          ref: ${{ matrix.moodle }}
+
+      - name: Resolve plugin install path
+        id: plugin_path
+        # Moodle main branch enforces the public/ structure for core subsystems,
+        # ensuring code checks out to the correct component scanner target.
+        run: |
+          if [ -d "$GITHUB_WORKSPACE/public/blocks" ]; then
+            echo "path=public/blocks/activity_copy_cart" >> "$GITHUB_OUTPUT"
+          else
+            echo "path=blocks/activity_copy_cart" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check out code from ${{ github.repository }}
+        uses: actions/checkout@v4
+        with:
+          path: ${{ steps.plugin_path.outputs.path }}
+          ref: ${{ github.ref }}
+
+      - name: Lint module code
+        run:
+          find "$GITHUB_WORKSPACE/${{ steps.plugin_path.outputs.path }}" -type f -name '*.php' -print0 | xargs -0 -n1 -P4 php -l -n | (! grep -v "No syntax errors detected" )
+
+      - name: Setting up PHPUnit
+        env:
+          dbtype: ${{ matrix.db }}
+        run: |
+          echo "pathtophp=$(which php)" >> $GITHUB_ENV # Inject installed pathtophp to env. The template config needs it.
+          mkdir $GITHUB_WORKSPACE/../moodledata
+          echo '<?php' >> $GITHUB_WORKSPACE/config.php
+          echo 'unset($CFG);' >> $GITHUB_WORKSPACE/config.php
+          echo 'global $CFG;' >> $GITHUB_WORKSPACE/config.php
+          echo '$CFG = new stdClass();' >> $GITHUB_WORKSPACE/config.php
+          echo "\$CFG->dbtype = '$dbtype';" >> $GITHUB_WORKSPACE/config.php
+          echo '$CFG->dblibrary = "native";' >> $GITHUB_WORKSPACE/config.php
+          echo '$CFG->dbhost = "127.0.0.1";' >> $GITHUB_WORKSPACE/config.php
+          echo '$CFG->dbname = "test";' >> $GITHUB_WORKSPACE/config.php
+          echo '$CFG->dbuser = "test";' >> $GITHUB_WORKSPACE/config.php
+          echo '$CFG->dbpass = "test";' >> $GITHUB_WORKSPACE/config.php
+          echo '$CFG->prefix = "m_";' >> $GITHUB_WORKSPACE/config.php
+          if [ "$dbtype" = "pgsql" ]; then
+            echo '$CFG->dboptions = [];' >> $GITHUB_WORKSPACE/config.php
+          else
+            echo '$CFG->dboptions = ["dbcollation" => "utf8mb4_unicode_ci"];' >> $GITHUB_WORKSPACE/config.php
+          fi
+          echo '$CFG->wwwroot = "http://localhost";' >> $GITHUB_WORKSPACE/config.php
+          echo "\$CFG->dataroot = '$GITHUB_WORKSPACE/../moodledata';" >> $GITHUB_WORKSPACE/config.php
+          echo '$CFG->admin = "admin";' >> $GITHUB_WORKSPACE/config.php
+          echo '$CFG->directorypermissions = 0777;' >> $GITHUB_WORKSPACE/config.php
+          echo '$CFG->phpunit_dataroot = realpath(dirname(__DIR__)) . "/phpunitdata";' >> $GITHUB_WORKSPACE/config.php
+          echo '$CFG->phpunit_prefix = "t_";' >> $GITHUB_WORKSPACE/config.php
+          if [ -d "$GITHUB_WORKSPACE/public" ]; then
+            echo 'require_once(__DIR__ . "/public/lib/setup.php");' >> $GITHUB_WORKSPACE/config.php
+          else
+            echo 'require_once(__DIR__ . "/lib/setup.php");' >> $GITHUB_WORKSPACE/config.php
+          fi
+          sudo locale-gen en_AU.UTF-8
+          test -f $GITHUB_WORKSPACE/public/admin/tool/phpunit/cli/init.php && php $GITHUB_WORKSPACE/public/admin/tool/phpunit/cli/init.php --no-composer-self-update || php $GITHUB_WORKSPACE/admin/tool/phpunit/cli/init.php --no-composer-self-update
+
+      - name: Running PHPUnit tests
+        env:
+          dbtype: ${{ matrix.db }}
+        run: $GITHUB_WORKSPACE/vendor/bin/phpunit -c $GITHUB_WORKSPACE/phpunit.xml --testsuite=block_activity_copy_cart_testsuite --testdox --fail-on-empty-test-suite

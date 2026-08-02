@@ -1,0 +1,46 @@
+<div class="activitycopycart-settings-group">
+    <h6 class="activitycopycart-group-title">{{#str}}settingsadvanced, block_activity_copy_cart {{/str}}</h6>
+    <div class="form-group mb-3">
+        <label for="visibility-select-{{cmid}}" class="form-label font-weight-bold">
+            {{#str}} targetvisibility, block_activity_copy_cart {{/str}}
+            <i class="icon fa fa-question-circle text-info fa-fw activitycopycart-info-icon" data-toggle="tooltip" data-placement="right"
+                tabindex="0" role="img"
+                title="{{#str}} visibility_info, block_activity_copy_cart {{/str}}"
+                aria-label="{{#str}} visibility_info, block_activity_copy_cart {{/str}}"></i>
+        </label>
+        <select class="form-control" id="visibility-select-{{cmid}}">
+            <option value="source" {{#visibilitysource}}selected{{/visibilitysource}}>
+                {{#str}} visibilitysource, block_activity_copy_cart {{/str}}
+            </option>
+            <option value="show" {{#visibilityshow}}selected{{/visibilityshow}}>
+                {{#str}} visibilityshow, block_activity_copy_cart {{/str}}
+            </option>
+            <option value="hide" {{#visibilityhide}}selected{{/visibilityhide}}>
+                {{#str}} visibilityhide, block_activity_copy_cart {{/str}}
+            </option>
+        </select>
+    </div>
+    <div class="form-group mb-0">
+        <label class="form-label font-weight-bold d-block">
+            {{#str}} groupcontentdata, block_activity_copy_cart {{/str}}
+            <i class="icon fa fa-question-circle text-info fa-fw activitycopycart-info-icon" data-toggle="tooltip" data-placement="right"
+                tabindex="0" role="img"
+                title="{{#str}} contentdata_info, block_activity_copy_cart {{/str}}"
+                aria-label="{{#str}} contentdata_info, block_activity_copy_cart {{/str}}"></i>
+        </label>
+        <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="keep-restrictions-{{cmid}}"
+                    {{#keeprestrictions}}checked{{/keeprestrictions}}>
+            <label class="form-check-label" for="keep-restrictions-{{cmid}}">
+                {{#str}} keeprestrictions, block_activity_copy_cart {{/str}}
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="keep-userdata-{{cmid}}"
+                    {{#keepuserdata}}checked{{/keepuserdata}}>
+            <label class="form-check-label" for="keep-userdata-{{cmid}}">
+                {{#str}} includeuserdata, block_activity_copy_cart {{/str}}
+            </label>
+        </div>
+    </div>
+</div>

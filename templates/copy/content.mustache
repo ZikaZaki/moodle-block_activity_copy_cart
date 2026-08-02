@@ -1,0 +1,32 @@
+<div data-region="copy-progress" data-jobid="{{jobid}}" data-status="{{status}}">
+    <div class="progress mb-2" style="height: 1.5rem;">
+        <div class="progress-bar" role="progressbar" data-region="copy-progress-bar"
+                style="width: {{percent}}%;" aria-valuenow="{{percent}}" aria-valuemin="0" aria-valuemax="100">
+            <span data-region="copy-progress-percent">{{percent}}%</span>
+        </div>
+    </div>
+    <p>
+        <strong data-region="copy-progress-status-label">{{statuslabel}}</strong> -
+        <span data-region="copy-progress-count">
+            {{#str}} copyprogressheading, block_activity_copy_cart, {"completedunits": {{completedunits}}, "totalunits": {{totalunits}}} {{/str}}
+        </span>
+    </p>
+    <div class="table-responsive">
+        <table class="table table-sm" data-region="copy-results-table">
+            <thead>
+                <tr>
+                    <th scope="col">{{#str}} logactivity, block_activity_copy_cart {{/str}}</th>
+                    <th scope="col">{{#str}} logtargetcourse, block_activity_copy_cart {{/str}}</th>
+                    <th scope="col">{{#str}} logstatus, block_activity_copy_cart {{/str}}</th>
+                    <th scope="col">{{#str}} logmessage, block_activity_copy_cart {{/str}}</th>
+                </tr>
+            </thead>
+            <tbody data-region="copy-results-body">
+                {{> block_activity_copy_cart/copy/results }}
+            </tbody>
+        </table>
+    </div>
+    <a href="{{courseurl}}" class="btn btn-secondary">
+        {{#str}} backtocourse, block_activity_copy_cart {{/str}}
+    </a>
+</div>

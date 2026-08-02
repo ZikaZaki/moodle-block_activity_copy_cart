@@ -1,0 +1,67 @@
+<div class="activitycopycart-settings-group mb-4">
+    <h6 class="activitycopycart-group-title">{{#str}}settingsplacement, block_activity_copy_cart {{/str}}</h6>
+    <div class="form-group mb-3">
+        <label for="section-select-{{cmid}}" class="form-label font-weight-bold">
+            {{#str}} targetsection, block_activity_copy_cart {{/str}}
+            <i class="icon fa fa-question-circle text-info fa-fw activitycopycart-info-icon" data-toggle="tooltip" data-placement="right"
+                tabindex="0" role="img"
+                title="{{#str}} section_info, block_activity_copy_cart {{/str}}"
+                aria-label="{{#str}} section_info, block_activity_copy_cart {{/str}}"></i>
+        </label>
+        <select class="form-control" id="section-select-{{cmid}}">
+            {{#sections}}
+            <option value="{{number}}" {{#selected}}selected{{/selected}}>{{title}}</option>
+            {{/sections}}
+        </select>
+    </div>
+    <div class="form-group mb-3">
+        <label class="form-label font-weight-bold d-block">
+            {{#str}} matchsectionby, block_activity_copy_cart {{/str}}
+            <i class="icon fa fa-question-circle text-info fa-fw activitycopycart-info-icon" data-toggle="tooltip" data-placement="right"
+                tabindex="0" role="img"
+                title="{{#str}} sectionmatch_info, block_activity_copy_cart {{/str}}"
+                aria-label="{{#str}} sectionmatch_info, block_activity_copy_cart {{/str}}"></i>
+        </label>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="sectionmatch-{{cmid}}"
+                    id="sectionmatch-name-{{cmid}}" value="name"
+                    {{#sectionmatchname}}checked{{/sectionmatchname}}>
+            <label class="form-check-label" for="sectionmatch-name-{{cmid}}">
+                {{#str}} matchbyname, block_activity_copy_cart {{/str}}
+            </label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="sectionmatch-{{cmid}}"
+                    id="sectionmatch-position-{{cmid}}" value="position"
+                    {{#sectionmatchposition}}checked{{/sectionmatchposition}}>
+            <label class="form-check-label" for="sectionmatch-position-{{cmid}}">
+                {{#str}} matchbyposition, block_activity_copy_cart {{/str}}
+            </label>
+        </div>
+    </div>
+    <div class="form-group mb-0">
+        <label class="form-label font-weight-bold d-block">
+            {{#str}} sectionmissing, block_activity_copy_cart {{/str}}
+            <i class="icon fa fa-question-circle text-info fa-fw activitycopycart-info-icon" data-toggle="tooltip" data-placement="right"
+                tabindex="0" role="img"
+                title="{{#str}} sectionmissing_info, block_activity_copy_cart {{/str}}"
+                aria-label="{{#str}} sectionmissing_info, block_activity_copy_cart {{/str}}"></i>
+        </label>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="sectionmissing-{{cmid}}"
+                    id="sectionmissing-create-{{cmid}}" value="create"
+                    {{#sectionmissingcreate}}checked{{/sectionmissingcreate}}>
+            <label class="form-check-label" for="sectionmissing-create-{{cmid}}">
+                {{#str}} createnewsection, block_activity_copy_cart {{/str}}
+            </label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="sectionmissing-{{cmid}}"
+                    id="sectionmissing-skip-{{cmid}}" value="skip"
+                    {{#sectionmissingskip}}checked{{/sectionmissingskip}}>
+            <label class="form-check-label" for="sectionmissing-skip-{{cmid}}">
+                {{#str}} skipactivity, block_activity_copy_cart {{/str}}
+            </label>
+        </div>
+    </div>
+</div>

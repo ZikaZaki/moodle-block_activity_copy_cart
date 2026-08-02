@@ -1,0 +1,22 @@
+<li class="activitycopycart-tree-node" data-region="category-node" data-category-id="{{id}}"
+    role="treeitem" {{#haschildren}}aria-expanded="false"{{/haschildren}}>
+    <div class="activitycopycart-tree-row d-flex align-items-center">
+        {{#haschildren}}
+        <button type="button" class="activitycopycart-tree-toggle btn btn-link p-0 mr-1 me-1" data-action="toggle-category"
+                aria-label="{{#str}} expandcategory, block_activity_copy_cart {{/str}}" aria-expanded="false">
+            <i class="fa fa-caret-right" aria-hidden="true"></i>
+        </button>
+        {{/haschildren}}
+        {{^haschildren}}
+        <span class="activitycopycart-tree-spacer mr-1 me-1" aria-hidden="true"></span>
+        {{/haschildren}}
+        <label class="activitycopycart-tree-label d-flex align-items-center mb-0">
+            <input type="checkbox" class="activitycopycart-tree-checkbox mr-1 me-1"
+                   data-action="select-category" data-category-id="{{id}}">
+            <span class="activitycopycart-tree-name font-weight-bold fw-bold">{{{name}}}</span>
+        </label>
+    </div>
+    {{#haschildren}}
+    <ul class="activitycopycart-tree-children list-unstyled pl-4 ps-4" data-region="category-children" role="group" hidden></ul>
+    {{/haschildren}}
+</li>
