@@ -9,8 +9,6 @@
 
 A course block that lets teachers cart up activities via drag-and-drop, fine-tune how each one should copy, and send them into one or more target courses in a single batch — without leaving the course page.
 
-> **Status: alpha (0.1.0).** Core functionality is implemented and exercised by CI, but the plugin has not yet been used in production and its automated test suite is still being built out. Review the code before relying on it for real courses.
-
 ## Contents
 
 - [Activity Copy Cart](#activity-copy-cart)
