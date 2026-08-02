@@ -1,10 +1,9 @@
-name: Integration & Unit test (Main)
+name: Integration & Unit test
 
 on:
   pull_request:
     branches:
-      - main
-      - master
+      - MOODLE_403_STABLE
 
 jobs:
   PHPUnit:
@@ -13,31 +12,37 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-22.04]
-        php: [8.3, 8.4]
+        php: [8.0, 8.1, 8.2, 8.3]
         db: [mysqli]
-        moodle: [MOODLE_500_STABLE, main]
+        moodle: [MOODLE_403_STABLE, MOODLE_404_STABLE, MOODLE_405_STABLE]
         experimental: [false]
-        # Exclude combinations that don't match modern Moodle baseline rules
+        # Exclude unsupported combinations across the Moodle 4.x stable range
         exclude:
-          # Moodle main branch requires PHP 8.4+ baseline by default
+          # Moodle 4.3 with PHP 8.3 (unofficial/unsupported natively)
           - os: ubuntu-22.04
             php: 8.3
             db: mysqli
-            moodle: main
+            moodle: MOODLE_403_STABLE
+            experimental: false
+            # Moodle 4.4+ with PHP 8.0 (below minimum PHP requirement)
+          - os: ubuntu-22.04
+            php: 8.0
+            db: mysqli
+            moodle: MOODLE_404_STABLE
+            experimental: false
+          # Moodle 4.5+ with PHP 8.0
+          - os: ubuntu-22.04
+            php: 8.0
+            db: mysqli
+            moodle: MOODLE_405_STABLE
             experimental: false
 
-        # Include supported modern configurations and experimental targets
+        # Include cross-database compatibility sanity checks against PostgreSQL
         include:
           - os: ubuntu-22.04
-            php: 8.4
-            db: mysqli
-            moodle: main
-            experimental: true
-          # Cross-database compatibility checks for modern versions
-          - os: ubuntu-22.04
-            php: 8.4
+            php: 8.1
             db: pgsql
-            moodle: MOODLE_500_STABLE
+            moodle: MOODLE_403_STABLE
             experimental: false
 
     steps:
