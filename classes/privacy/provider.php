@@ -79,14 +79,11 @@ class provider implements
                     // Every per-unit result belongs to this job (and thus this user) just as
                     // much as the job row itself does - export it too, so an export actually
                     // covers everything delete_data_for_user() removes.
-                    // repository::get_results() returns raw DB records - numeric columns
-                    // come back as strings on some drivers, so cast explicitly (matching
-                    // manager::result_rows()'s own (int) cast on these same columns).
                     'results' => array_map(
                         fn(\stdClass $result): object => (object) [
-                            'sourcecmid' => (int) $result->sourcecmid,
-                            'targetcourseid' => (int) $result->targetcourseid,
-                            'newcmid' => $result->newcmid !== null ? (int) $result->newcmid : null,
+                            'sourcecmid' => $result->sourcecmid,
+                            'targetcourseid' => $result->targetcourseid,
+                            'newcmid' => $result->newcmid,
                             'status' => $result->status,
                             'message' => $result->message,
                             'timecreated' => transform::datetime($result->timecreated),
