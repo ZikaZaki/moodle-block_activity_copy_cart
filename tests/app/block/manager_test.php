@@ -24,7 +24,6 @@ final class manager_test extends \advanced_testcase {
         $this->assertSame('My page', $item['name']);
         $this->assertEquals(\context_module::instance($page->cmid)->id, $item['contextid']);
         $this->assertSame('', $item['rename']);
-        $this->assertFalse($item['userdata']);
         $this->assertSame(item_settings::SECTION_MATCH_NAME, $item['sectionmatch']);
         $this->assertSame(item_settings::SECTION_MISSING_CREATE, $item['sectionmissing']);
         $this->assertSame(item_settings::NAME_CONFLICT_RESOLVE, $item['nameconflict']);
@@ -39,7 +38,6 @@ final class manager_test extends \advanced_testcase {
         $cart = manager::build([$page->cmid], [
             (string) $page->cmid => [
                 'rename' => '  New Name  ',
-                'userdata' => 1,
                 'sectionmatch' => 'not-a-real-option',
                 'section' => 5,
                 'sectionname' => 'Custom section',
@@ -52,7 +50,6 @@ final class manager_test extends \advanced_testcase {
 
         $item = $cart['items'][$page->cmid];
         $this->assertSame('New Name', $item['rename']);
-        $this->assertTrue($item['userdata']);
         $this->assertSame(item_settings::SECTION_MATCH_NAME, $item['sectionmatch']);
         $this->assertSame(5, $item['section']);
         $this->assertSame('Custom section', $item['sectionname']);
@@ -102,7 +99,6 @@ final class manager_test extends \advanced_testcase {
             (string) $page->cmid => [
                 'rename' => 'Renamed page',
                 'visibility' => item_settings::VISIBILITY_HIDE,
-                'userdata' => 1,
             ],
         ]);
 
@@ -112,7 +108,6 @@ final class manager_test extends \advanced_testcase {
         $this->assertSame([
             get_string('badgerenamed', 'block_activity_copy_cart', 'Renamed page'),
             get_string('visibilityhide', 'block_activity_copy_cart'),
-            get_string('includeuserdata', 'block_activity_copy_cart'),
         ], $rows[0]['badges']);
     }
 

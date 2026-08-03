@@ -27,7 +27,12 @@ final class backup {
             $item['cmid'],
             \backup::FORMAT_MOODLE,
             \backup::INTERACTIVE_NO,
-            $item['userdata'] ? \backup::MODE_GENERAL : \backup::MODE_IMPORT,
+            // Always MODE_IMPORT. Moodle's own backup_check::check_security() forces
+            // `users=false` and locks it whenever mode is MODE_IMPORT, and a MODE_GENERAL
+            // backup's temp directory is deleted before restore.php could ever reuse it
+            // (see the shared temp-dir architecture in restore::restore_backup()) - so
+            // this plugin cannot support carrying user data over with the current design.
+            \backup::MODE_IMPORT,
             $userid
         );
 

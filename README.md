@@ -34,7 +34,6 @@ A course block that lets teachers cart up activities via drag-and-drop, fine-tun
 - **Drag-and-drop cart.** Drag any activity into the block's cart while editing a course, or use the "Add to copy cart" action added to each activity's own action menu.
 - **Per-activity copy settings.** For each cart item, independently configure:
   - Rename the copy.
-  - Include or exclude user data (submissions, attempts, etc.).
   - Which target section to place it in, matched by name or by position, with an option to auto-create the section if a target course doesn't have it yet.
   - What to do on a name conflict in the target section: auto-rename or skip.
   - Visibility in the target course: same as source, always shown, or always hidden.
@@ -85,7 +84,7 @@ Once installed, add the **Activity Copy Cart** block to a course from the course
 
 1. Turn on editing in a course that has the block added. The cart appears in the block, empty.
 2. Drag activities into the cart, or click the "Add to copy cart" icon on an activity you're already looking at.
-3. Open an item's settings (the gear icon on its cart entry) to adjust how it should copy — rename, target section, name-conflict handling, visibility, user data, access restrictions.
+3. Open an item's settings (the gear icon on its cart entry) to adjust how it should copy — rename, target section, name-conflict handling, visibility, access restrictions.
 4. Click **Copy Activities** to move to target selection. Search for a course, or browse the category tree and tick individual courses and/or whole categories.
 5. Review the cart and the selected targets, then confirm. The copy job is queued and you're taken to its progress page.
 6. The progress page polls the job while it runs. When it finishes, you'll also get a Moodle notification with a summary, and the progress page lists exactly what happened to each activity in each target course.

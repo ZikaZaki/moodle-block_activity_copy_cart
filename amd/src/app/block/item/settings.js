@@ -64,12 +64,6 @@ export const SETTINGS_FIELDS = [
             root.querySelector(`#${VISIBILITY_SELECT_ID_PREFIX}${cmid}`)?.value,
     },
     {
-        key: 'userdata',
-        defaultValue: '0',
-        read: (root, cmid) =>
-            root.querySelector(`#keep-userdata-${cmid}`)?.checked ? '1' : '0',
-    },
-    {
         key: 'restrictions',
         defaultValue: '1',
         read: (root, cmid) =>

@@ -17,6 +17,15 @@ require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
  */
 final class restore {
     /**
+     * How far beyond a target course's current last section a position-matched item is
+     * allowed to auto-create a new section - guards against a client-supplied section
+     * number creating a wildly out-of-place course_sections row (see is_creatable_section_number()).
+     *
+     * @var int
+     */
+    private const MAX_AUTOCREATE_SECTION_GAP = 50;
+
+    /**
      * Restores a backup into one target course and applies the item's rename/visibility/restriction settings.
      *
      * @param string $backupid As returned by \block_activity_copy_cart\app\copy\backup::create()
@@ -100,8 +109,31 @@ final class restore {
         if ($item['sectionmissing'] === item_settings::SECTION_MISSING_SKIP) {
             return null;
         }
+        if (!self::is_creatable_section_number($sectionnum, $modinfo)) {
+            // A negative or wildly out-of-range section number: treat it the same as a
+            // missing section rather than letting course_create_sections_if_missing()
+            // insert a nonsensical/corrupt course_sections row for it.
+            return null;
+        }
         course_create_sections_if_missing($targetcourseid, $sectionnum);
         return $sectionnum;
+    }
+
+    /**
+     * Whether a target section number is safe to auto-create in the target course - rejects
+     * negative numbers and numbers unreasonably far beyond the target course's current last
+     * section, both of which would otherwise be inserted into course_sections verbatim.
+     *
+     * @param int $sectionnum
+     * @param \course_modinfo $modinfo The target course's modinfo
+     * @return bool
+     */
+    private static function is_creatable_section_number(int $sectionnum, \course_modinfo $modinfo): bool {
+        if ($sectionnum < 0) {
+            return false;
+        }
+        $lastsection = max(array_keys($modinfo->get_section_info_all()));
+        return $sectionnum <= $lastsection + self::MAX_AUTOCREATE_SECTION_GAP;
     }
 
     /**

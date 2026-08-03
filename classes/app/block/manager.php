@@ -19,7 +19,6 @@ final class manager {
         $cmids = array_values(array_unique(array_filter($cmids)));
 
         $renames = optional_param_array('rename', [], PARAM_TEXT);
-        $userdata = optional_param_array('userdata', [], PARAM_INT);
         $sectionmatch = optional_param_array('sectionmatch', [], PARAM_ALPHA);
         $section = optional_param_array('section', [], PARAM_INT);
         $sectionname = optional_param_array('sectionname', [], PARAM_TEXT);
@@ -33,7 +32,6 @@ final class manager {
             $key = (string) $cmid;
             $rawitems[$key] = [
                 'rename' => $renames[$key] ?? '',
-                'userdata' => $userdata[$key] ?? null,
                 'sectionmatch' => $sectionmatch[$key] ?? null,
                 'section' => $section[$key] ?? null,
                 'sectionname' => $sectionname[$key] ?? null,
@@ -95,7 +93,6 @@ final class manager {
                 'name' => $cminfo->get_formatted_name(),
                 'contextid' => $cminfo->context->id,
                 'rename' => trim($raw['rename'] ?? ''),
-                'userdata' => (bool) ($raw['userdata'] ?? item_settings::DEFAULTS['userdata']),
                 'sectionmatch' => item_settings::sanitize('sectionmatch', $raw['sectionmatch'] ?? null),
                 'section' => isset($raw['section']) ? (int) $raw['section'] : $ownsection,
                 'sectionname' => $raw['sectionname'] ?? get_section_name($course, $ownsection),
@@ -150,7 +147,6 @@ final class manager {
             $cmid = $item['cmid'];
             $html .= \html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'cmids[]', 'value' => $cmid]);
             $html .= self::hidden_field($cmid, 'rename', $item['rename']);
-            $html .= self::hidden_field($cmid, 'userdata', $item['userdata'] ? '1' : '0');
             $html .= self::hidden_field($cmid, 'sectionmatch', $item['sectionmatch']);
             $html .= self::hidden_field($cmid, 'section', (string) $item['section']);
             $html .= self::hidden_field($cmid, 'sectionname', $item['sectionname']);
@@ -261,9 +257,6 @@ final class manager {
         }
         if ($item['visibility'] !== item_settings::VISIBILITY_SOURCE) {
             $badges[] = get_string('visibility' . $item['visibility'], 'block_activity_copy_cart');
-        }
-        if ($item['userdata']) {
-            $badges[] = get_string('includeuserdata', 'block_activity_copy_cart');
         }
         return $badges;
     }
