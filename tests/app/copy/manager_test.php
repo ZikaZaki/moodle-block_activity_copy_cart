@@ -172,6 +172,39 @@ final class manager_test extends \advanced_testcase {
         $this->assertSame('Pipeline page', $DB->get_field('page', 'name', ['id' => $newcm->instance]));
     }
 
+    /**
+     * Builds a cart bypassing cart_manager::build() entirely, so a deliberately malicious
+     * 'section' value reaches restore.php exactly as given - build() has its own section
+     * validation (rejects negative values before they're ever stored), so routing through it
+     * would test that validation instead of restore.php's independent, defense-in-depth guard.
+     *
+     * @param int $sourcecourseid
+     * @param \stdClass $page
+     * @param int $section
+     * @return array
+     */
+    private function build_cart_with_raw_section(int $sourcecourseid, \stdClass $page, int $section): array {
+        return [
+            'sourcecourseid' => $sourcecourseid,
+            'items' => [
+                $page->cmid => [
+                    'cmid' => $page->cmid,
+                    'modname' => 'page',
+                    'name' => 'Malicious section page',
+                    'contextid' => \context_module::instance($page->cmid)->id,
+                    'rename' => '',
+                    'sectionmatch' => item_settings::SECTION_MATCH_POSITION,
+                    'section' => $section,
+                    'sectionname' => 'Section 0',
+                    'sectionmissing' => item_settings::SECTION_MISSING_CREATE,
+                    'nameconflict' => item_settings::NAME_CONFLICT_RESOLVE,
+                    'visibility' => item_settings::VISIBILITY_SOURCE,
+                    'restrictions' => true,
+                ],
+            ],
+        ];
+    }
+
     public function test_negative_section_number_is_skipped_not_created(): void {
         global $DB;
 
@@ -184,13 +217,7 @@ final class manager_test extends \advanced_testcase {
             'name' => 'Malicious section page',
         ]);
 
-        $cart = cart_manager::build([$page->cmid], [
-            (string) $page->cmid => [
-                'sectionmatch' => item_settings::SECTION_MATCH_POSITION,
-                'section' => -5,
-                'sectionmissing' => item_settings::SECTION_MISSING_CREATE,
-            ],
-        ]);
+        $cart = $this->build_cart_with_raw_section($sourcecourse->id, $page, -5);
         $jobid = manager::create_job($cart, [$targetcourse->id]);
 
         manager::process_backups($jobid);
@@ -255,13 +282,7 @@ final class manager_test extends \advanced_testcase {
             'name' => 'Malicious section page',
         ]);
 
-        $cart = cart_manager::build([$page->cmid], [
-            (string) $page->cmid => [
-                'sectionmatch' => item_settings::SECTION_MATCH_POSITION,
-                'section' => 999999,
-                'sectionmissing' => item_settings::SECTION_MISSING_CREATE,
-            ],
-        ]);
+        $cart = $this->build_cart_with_raw_section($sourcecourse->id, $page, 999999);
         $jobid = manager::create_job($cart, [$targetcourse->id]);
 
         manager::process_backups($jobid);

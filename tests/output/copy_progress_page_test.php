@@ -12,7 +12,7 @@ final class copy_progress_page_test extends \advanced_testcase {
     }
 
     public function test_export_for_template(): void {
-        global $OUTPUT;
+        global $PAGE;
         $target = $this->getDataGenerator()->create_course(['fullname' => 'Target course']);
         $cart = ['sourcecourseid' => 3, 'items' => [10 => ['cmid' => 10, 'name' => 'My page']]];
         $jobid = repository::create_job(2, 3, $cart, [$target->id]);
@@ -20,7 +20,7 @@ final class copy_progress_page_test extends \advanced_testcase {
         $job = repository::get_job($jobid);
         $courseurl = new \moodle_url('/course/view.php', ['id' => 3]);
 
-        $data = (new copy_progress_page($job, $courseurl))->export_for_template($OUTPUT);
+        $data = (new copy_progress_page($job, $courseurl))->export_for_template($PAGE->get_renderer('core'));
 
         $this->assertSame($jobid, $data['jobid']);
         $this->assertSame($courseurl->out(false), $data['courseurl']);

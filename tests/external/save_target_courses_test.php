@@ -23,8 +23,10 @@ final class save_target_courses_test extends \advanced_testcase {
 
         $this->assertTrue($result['result']);
         $saved = repository::get($course->id);
-        $this->assertSame([$target->id], $saved['courseids']);
-        $this->assertSame([$category->id], $saved['categoryids']);
+        // repository::save() explicitly casts every id to (int) via array_map('intval', ...);
+        // the generator's own ->id is not guaranteed to be typed the same way.
+        $this->assertSame([(int) $target->id], $saved['courseids']);
+        $this->assertSame([(int) $category->id], $saved['categoryids']);
     }
 
     public function test_throws_when_too_many_ids_submitted(): void {
