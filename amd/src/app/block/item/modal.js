@@ -184,7 +184,7 @@ export default class Modal {
                         showErrors(root, errors);
                         return;
                     }
-                    this.#saveItemSettings(elements, cmid, modal);
+                    this.#saveItemSettings(elements, cmid, modal, cmName);
                 }
             );
 
@@ -202,26 +202,24 @@ export default class Modal {
      * @param {Object} elements - {form, cartItems, emptyMsg, clearCartBtn, submitBtn, courseId}
      * @param {number} cmid - The course module ID
      * @param {Object} modal - The modal instance
+     * @param {string} originalName - The activity's own name, to restore the visible label to if the rename is cleared
      */
-    #saveItemSettings(elements, cmid, modal) {
+    #saveItemSettings(elements, cmid, modal, originalName) {
 
         const root = modal.getRoot()[0];
         const {form, cartItems} = elements;
 
-        // Rename
-        const renameVal = root.querySelector(`#rename-input-${cmid}`)?.value;
+        // Rename - always written (even when cleared back to ''), so clearing the field
+        // actually reverts the cart item's label instead of silently keeping a stale rename.
+        const renameVal = root.querySelector(`#rename-input-${cmid}`)?.value ?? '';
+        setHiddenInput(form, `rename[${cmid}]`, renameVal, `rename-hidden-${cmid}`);
 
-        if (renameVal) {
+        const nameEl = cartItems.querySelector(
+            `${SELECTORS.CART_ITEM}[data-cmid="${cmid}"] ${SELECTORS.CART_ITEM_NAME}`
+        );
 
-            setHiddenInput(form, `rename[${cmid}]`, renameVal, `rename-hidden-${cmid}`);
-
-            const nameEl = cartItems.querySelector(
-                `${SELECTORS.CART_ITEM}[data-cmid="${cmid}"] ${SELECTORS.CART_ITEM_NAME}`
-            );
-
-            if (nameEl) {
-                nameEl.textContent = renameVal;
-            }
+        if (nameEl) {
+            nameEl.textContent = renameVal !== '' ? renameVal : originalName;
         }
 
         Settings.SETTINGS_FIELDS.forEach(({key, defaultValue, read}) => {
