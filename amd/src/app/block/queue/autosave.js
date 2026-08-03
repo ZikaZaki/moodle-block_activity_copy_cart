@@ -19,7 +19,6 @@ async function save(baseFactory, form, courseId) {
     const items = cmids.map((cmid) => ({
         cmid,
         rename: getSavedValue(`rename-hidden-${cmid}`, ''),
-        userdata: getSavedValue(`userdata-hidden-${cmid}`, '0') === '1',
         sectionmatch: getSavedValue(`sectionmatch-hidden-${cmid}`, Settings.SECTION_MATCH.NAME),
         section: parseInt(getSavedValue(`section-hidden-${cmid}`, '0'), 10) || 0,
         sectionname: getSavedValue(`sectionname-hidden-${cmid}`, ''),

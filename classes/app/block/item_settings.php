@@ -56,7 +56,6 @@ final class item_settings {
      * @var array<string, string>
      */
     const DEFAULTS = [
-        'userdata' => '0',
         'sectionmatch' => self::SECTION_MATCH_NAME,
         'sectionmissing' => self::SECTION_MISSING_CREATE,
         'nameconflict' => self::NAME_CONFLICT_RESOLVE,
