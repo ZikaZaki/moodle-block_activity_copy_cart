@@ -27,7 +27,9 @@ final class save_cart_test extends \advanced_testcase {
 
         $this->assertTrue($result['result']);
         $saved = repository::get();
-        $this->assertSame($course->id, $saved['sourcecourseid']);
+        // manager::build() explicitly casts sourcecourseid to (int); the generator's own
+        // ->id is not guaranteed to be typed the same way, so compare the numeric value only.
+        $this->assertSame((int) $course->id, $saved['sourcecourseid']);
         $this->assertArrayHasKey($page->cmid, $saved['items']);
     }
 
@@ -57,6 +59,7 @@ final class save_cart_test extends \advanced_testcase {
         ]);
 
         $this->assertFalse($result['result']);
+        $this->assertDebuggingCalled();
     }
 
     public function test_returns_false_when_too_many_items_submitted(): void {
@@ -70,6 +73,7 @@ final class save_cart_test extends \advanced_testcase {
         $result = $this->execute($course->id, $cmids, $items);
 
         $this->assertFalse($result['result']);
+        $this->assertDebuggingCalled();
     }
 
     public function test_throws_without_capability(): void {

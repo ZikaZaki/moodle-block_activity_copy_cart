@@ -12,7 +12,7 @@ final class target_courses_page_test extends \advanced_testcase {
     }
 
     public function test_export_for_template(): void {
-        global $OUTPUT;
+        global $PAGE;
         $course = $this->getDataGenerator()->create_course();
         $page = $this->getDataGenerator()->create_module('page', ['course' => $course->id, 'name' => 'My page']);
         $cart = cart_manager::build([$page->cmid], []);
@@ -21,7 +21,7 @@ final class target_courses_page_test extends \advanced_testcase {
         $targetrows = [['id' => 5, 'fullname' => 'Target course']];
 
         $data = (new target_courses_page($courseurl, $pageurl, true, $cart, $targetrows, ''))
-            ->export_for_template($OUTPUT);
+            ->export_for_template($PAGE->get_renderer('core'));
 
         $this->assertTrue($data['reviewing']);
         $this->assertSame(1, $data['cartcount']);
