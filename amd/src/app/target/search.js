@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-unused-vars
 import BaseFactory from '../factory';
 import SELECTORS from './selectors';
+import {debounce} from '../../lib/helpers';
 
 // Matches the capability the tree itself and courses_tree::filter() already require of a copy target.
 const REQUIRED_CAPABILITY = 'moodle/restore:restoretargetimport';
@@ -12,6 +13,14 @@ export default class Search {
      * @type {BaseFactory}
      */
     #baseFactory;
+
+    /**
+     * Incremented on every search dispatch - lets a response tell whether it's still the most
+     * recent search, so a slower earlier response can't overwrite fresher results that already
+     * arrived (see #searchCourses()).
+     * @type {number}
+     */
+    #searchToken = 0;
 
     /**
      * @param {BaseFactory} baseFactory
@@ -28,6 +37,7 @@ export default class Search {
      * @return {Promise}
      */
     async #searchCourses(query, sourceCourseId, resultsList, noResults) {
+        const token = ++this.#searchToken;
         const ajax = this.#baseFactory.moodle().ajax();
         const template = this.#baseFactory.moodle().template();
 
@@ -41,19 +51,27 @@ export default class Search {
             });
             const courses = allCourses.filter((course) => course.id !== sourceCourseId);
 
-            resultsList.innerHTML = '';
-            noResults.hidden = courses.length !== 0;
-
             const rendered = await Promise.all(courses.map(
                 (course) => template.renderTemplate('block_activity_copy_cart/target/course', {
                     id: course.id,
                     fullname: course.fullname,
                 })
             ));
+
+            if (token !== this.#searchToken) {
+                // A newer search has been dispatched since this one started - drop this now-stale
+                // response rather than overwriting the results of the search that superseded it.
+                return null;
+            }
+
+            resultsList.innerHTML = '';
+            noResults.hidden = courses.length !== 0;
             rendered.forEach(({html, js}) => template.appendNodeContents(resultsList, html, js));
             return null;
         } catch (error) {
-            ajax.notifyException(error);
+            if (token === this.#searchToken) {
+                ajax.notifyException(error);
+            }
             return null;
         }
     }
@@ -75,10 +93,12 @@ export default class Search {
             return;
         }
 
-        let debounceHandle = null;
+        const scheduledSearch = debounce(
+            (query) => this.#searchCourses(query, sourceCourseId, resultsList, noResults),
+            SEARCH_DEBOUNCE_MS
+        );
 
         input.addEventListener('input', () => {
-            window.clearTimeout(debounceHandle);
             const query = input.value.trim();
 
             if (query === '') {
@@ -89,10 +109,7 @@ export default class Search {
 
             treeRoot.hidden = true;
             resultsRegion.hidden = false;
-            debounceHandle = window.setTimeout(
-                () => this.#searchCourses(query, sourceCourseId, resultsList, noResults),
-                SEARCH_DEBOUNCE_MS
-            );
+            scheduledSearch(query);
         });
 
         resultsList.addEventListener('change', (event) => {

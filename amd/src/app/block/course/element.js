@@ -4,6 +4,11 @@ import BaseFactory from '../factory';
 import BlockElement from '../element';
 import SELECTORS from '../selectors';
 
+// Caps refreshCourseModule()'s retry loop at ~5 seconds - without a cap, a course module whose
+// action menu never appears (e.g. deleted before it renders, or an activity type/permission
+// combination with no action menu) would retry every 100ms forever, leaking a timer per cmid.
+const MAX_REFRESH_ATTEMPTS = 50;
+
 export default class CourseElement {
     /**
      * @type {BaseFactory}
@@ -26,51 +31,40 @@ export default class CourseElement {
     #showCopyToCartIcon;
 
     /**
-     * Capability data plumbed through for a future feature (gating the
-     * "Include user data"/anonymize options) - not yet consumed anywhere.
-     * @type {boolean}
+     * The in-flight (or resolved) template render, memoized as the promise itself rather than
+     * its resolved value - caching the resolved value alone let every concurrent caller during
+     * stateReady()'s unawaited forEach() over existing course modules independently trigger its
+     * own redundant render before the first one resolved.
+     * @type {?Promise<Element>}
      */
-    #canBackupUserdata;
-
-    /**
-     * @type {boolean}
-     */
-    #canAnonymizeUserdata;
-
-    /**
-     * @type {?Element}
-     */
-    #copyCartButton;
+    #copyCartButtonPromise;
 
     /**
      * @param {BaseFactory} baseFactory
      * @param {BlockElement} block
      * @param {boolean} canBackup
      * @param {boolean} showCopyToCartIcon
-     * @param {boolean} canBackupUserdata
-     * @param {boolean} canAnonymizeUserdata
      */
-    constructor(baseFactory, block, canBackup, showCopyToCartIcon, canBackupUserdata, canAnonymizeUserdata) {
+    constructor(baseFactory, block, canBackup, showCopyToCartIcon) {
         this.#baseFactory = baseFactory;
         this.#block = block;
         this.#canBackup = canBackup;
         this.#showCopyToCartIcon = showCopyToCartIcon;
-        this.#canBackupUserdata = canBackupUserdata;
-        this.#canAnonymizeUserdata = canAnonymizeUserdata;
     }
 
     /**
      * @return {Promise<Element>} A fresh clone of the (memoized) button element
      */
     async getBackupToCopyCartButton() {
-        if (!this.#copyCartButton) {
-            this.#copyCartButton = await this.#baseFactory.moodle().template().createElementFromTemplate(
+        if (!this.#copyCartButtonPromise) {
+            this.#copyCartButtonPromise = this.#baseFactory.moodle().template().createElementFromTemplate(
                 'block_activity_copy_cart/block/course/add_to_copy_cart_button',
                 {}
             );
         }
 
-        return this.#copyCartButton.cloneNode(true);
+        const button = await this.#copyCartButtonPromise;
+        return button.cloneNode(true);
     }
 
     /**
@@ -81,8 +75,9 @@ export default class CourseElement {
      * needs to stamp the activity's own id onto the clone.
      * @param {Object} param
      * @param {Object} param.element - The cm state element
+     * @param {number} [attempt] - Retry counter, capped at MAX_REFRESH_ATTEMPTS
      */
-    async refreshCourseModule({element}) {
+    async refreshCourseModule({element}, attempt = 0) {
         if (!this.#showCopyToCartIcon || !this.#canBackup) {
             return;
         }
@@ -91,7 +86,10 @@ export default class CourseElement {
             `${SELECTORS.COURSE_CONTENT} ${SELECTORS.COURSE_MODULE_ACTION_MENU}[data-cmid="${element.id}"]`
         );
         if (!courseModuleActionMenu) {
-            setTimeout(() => this.refreshCourseModule({element}), 100);
+            if (attempt >= MAX_REFRESH_ATTEMPTS) {
+                return;
+            }
+            setTimeout(() => this.refreshCourseModule({element}, attempt + 1), 100);
             return;
         }
 

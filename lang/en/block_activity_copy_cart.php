@@ -28,7 +28,6 @@ defined('MOODLE_INTERNAL') || die();
 
 $string['pluginname'] = 'Activity Copy Cart';
 $string['activity_copy_cart:addinstance'] = 'Add a new Activity Copy Cart block';
-$string['activity_copy_cart:myaddinstance'] = 'Add a new Activity Copy Cart block to Dashboard';
 $string['activity_copy_cart:copyactivities'] = 'Copy activities to other courses';
 $string['nopermissions'] = 'You do not have permission to copy activities out of this course.';
 $string['clearcart'] = 'Clear all';
@@ -45,6 +44,10 @@ $string['selectedcourses'] = 'Target courses ({$a})';
 $string['cartexpired'] = 'Your cart has expired or is empty. Please add activities to it again.';
 $string['cartinvalid'] = 'The submitted cart is invalid.';
 $string['notargetschosen'] = 'Choose at least one target course.';
+$string['errortoomanytargetcourses'] = 'Too many target courses selected ({$a} maximum). Please select fewer courses or categories.';
+$string['errortoomanyitems'] = 'Too many items submitted ({$a} maximum).';
+$string['errorjobtoolarge'] = 'This copy would create too many individual copies ({$a} maximum) given the number of activities and target courses selected. Please select fewer activities or target courses.';
+$string['errortargetcourselocked'] = 'Another copy into this course is currently in progress. Please try again shortly.';
 $string['badgerenamed'] = 'Renamed to: {$a}';
 $string['backtoselection'] = 'Back to course selection';
 

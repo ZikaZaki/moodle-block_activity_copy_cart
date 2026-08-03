@@ -30,6 +30,14 @@ export default class BlockElement {
     draggedCmId = null;
 
     /**
+     * Handle for the pending "clear draggedCmId" timeout scheduled by setDraggedCourseModuleId(),
+     * so a new drag starting within that window can cancel it instead of letting it null out a
+     * currently-in-progress drag/drop.
+     * @type {?number}
+     */
+    #clearDragTimeout = null;
+
+    /**
      * @param {BaseFactory} baseFactory
      * @param {Object} component - The reactive Block instance
      * @param {Object} queue - The cart's Queue
@@ -81,6 +89,22 @@ export default class BlockElement {
     }
 
     /**
+     * Disables the "Copy activities" submit button the moment the cart form is submitted, so a
+     * fast double-click can't queue two copy jobs from the same submission - the button stays
+     * disabled through the page navigation the submit triggers, so there's nothing to re-enable.
+     */
+    bindCartFormSubmit() {
+        const form = this.getElement(SELECTORS.CART_FORM);
+        const submitBtn = this.getElement(SELECTORS.CART_SUBMIT_BTN);
+        if (!form || !submitBtn) {
+            return;
+        }
+        this.#component.addEventListener(form, 'submit', () => {
+            submitBtn.disabled = true;
+        });
+    }
+
+    /**
      * Reactive watcher hook body for `cm.dragging:created`/`cm.dragging:updated`.
      * @param {Object} param
      * @param {Object} param.element - The dragged cm state element
@@ -93,9 +117,12 @@ export default class BlockElement {
      * @param {?number} cmid
      */
     setDraggedCourseModuleId(cmid) {
+        window.clearTimeout(this.#clearDragTimeout);
+
         if (cmid === null) {
-            // Slight delay clearing the ID so the drop event has time to read it.
-            setTimeout(() => {
+            // Slight delay clearing the ID so the drop event has time to read it - cancelled
+            // above if a new drag starts before this fires, so it can't null out that newer drag.
+            this.#clearDragTimeout = window.setTimeout(() => {
                 this.draggedCmId = null;
             }, 100);
         } else {

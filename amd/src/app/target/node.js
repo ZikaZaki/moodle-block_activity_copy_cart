@@ -95,10 +95,15 @@ export default class Node {
                 'block_activity_copy_cart_get_target_tree_node',
                 {sourcecourseid: sourceCourseId, categoryid: categoryId}
             );
-            const rendered = await Promise.all([
+            // allSettled rather than all: one bad category/course template shouldn't discard an
+            // otherwise-successful batch - render everything that did succeed and skip the rest.
+            const settled = await Promise.allSettled([
                 ...categories.map((category) => template.renderTemplate('block_activity_copy_cart/target/category', category)),
                 ...courses.map((course) => template.renderTemplate('block_activity_copy_cart/target/course', course)),
             ]);
+            const rendered = settled
+                .filter((result) => result.status === 'fulfilled')
+                .map((result) => result.value);
             await this.#renderChildren(childrenContainer, rendered);
 
             loadedCategoryIds.add(categoryId);
