@@ -75,6 +75,7 @@ $string['errortargetcapabilitylost'] = 'لم تعد تملك صلاحية الن
 $string['copycompletedmessagesubject'] = 'اكتملت عملية نسخ النشاط';
 $string['copycompletedmessagebody'] = 'اكتملت {$a->completedunits} من أصل {$a->totalunits} عملية نسخ، بالحالة: {$a->status}.';
 $string['messageprovider:copycompleted'] = 'إشعار بانتهاء مهمة نسخ نشاط مُدرجة في قائمة الانتظار';
+$string['task_recoverstalledjobs'] = 'استعادة مهام نسخ الأنشطة المتوقفة';
 
 // الخصوصية.
 $string['privacy:metadata:job'] = 'سجل لمهمة "نسخ الأنشطة" - الأنشطة المنسوخة، والمقررات المستهدفة، ومدى تقدم العملية.';
@@ -84,10 +85,22 @@ $string['privacy:metadata:job:cart'] = 'لقطة من الأنشطة وإعدا�
 $string['privacy:metadata:job:targetcourseids'] = 'المقررات التي نُسخت الأنشطة إليها.';
 $string['privacy:metadata:job:status'] = 'حالة تقدم المهمة.';
 $string['privacy:metadata:job:timecreated'] = 'وقت بدء المهمة.';
+$string['privacy:metadata:job:timemodified'] = 'وقت آخر تحديث للمهمة.';
 $string['privacy:metadata:jobbackup'] = 'سجل للنسخة الاحتياطية الخاصة بعنصر واحد من عناصر السلة ضمن مهمة النسخ، تُستخدم لكل مقرر هدف يُنسخ إليه هذا العنصر.';
 $string['privacy:metadata:jobbackup:jobid'] = 'مهمة النسخ التي تنتمي إليها هذه النسخة الاحتياطية.';
 $string['privacy:metadata:jobbackup:sourcecmid'] = 'النشاط الذي تم نسخه احتياطيًا.';
+$string['privacy:metadata:jobbackup:backupid'] = 'معرف النسخة الاحتياطية الداخلي في نظام مودل الذي نُسخ به هذا النشاط احتياطيًا.';
 $string['privacy:metadata:jobbackup:status'] = 'حالة النسخة الاحتياطية نفسها.';
+$string['privacy:metadata:jobbackup:message'] = 'سبب فشل النسخ الاحتياطي، إن فشل.';
+$string['privacy:metadata:jobbackup:timecleaned'] = 'وقت حذف الملفات المؤقتة لهذه النسخة الاحتياطية.';
+$string['privacy:metadata:jobresult'] = 'سجل لنسخ نشاط واحد (أو عدم نسخه) إلى مقرر هدف واحد.';
+$string['privacy:metadata:jobresult:jobid'] = 'مهمة النسخ التي تنتمي إليها هذه النتيجة.';
+$string['privacy:metadata:jobresult:sourcecmid'] = 'النشاط الذي تم نسخه.';
+$string['privacy:metadata:jobresult:targetcourseid'] = 'المقرر الذي نُسخ النشاط إليه.';
+$string['privacy:metadata:jobresult:newcmid'] = 'معرف النسخة الناتجة، إن نجحت العملية.';
+$string['privacy:metadata:jobresult:status'] = 'ما إذا كانت عملية النسخ قد نجحت أو تم تخطيها أو فشلت.';
+$string['privacy:metadata:jobresult:message'] = 'سبب تخطي النسخ أو فشله، إن حدث ذلك.';
+$string['privacy:metadata:jobresult:timecreated'] = 'وقت تسجيل هذه النتيجة.';
 
 // شجرة المقررات المستهدفة.
 $string['searchcourses'] = 'البحث عن مقرر';

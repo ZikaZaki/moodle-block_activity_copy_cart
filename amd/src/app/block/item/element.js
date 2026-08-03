@@ -15,6 +15,16 @@ function getActivityIconUrl(cmid) {
     return icon?.src ?? '';
 }
 
+/**
+ * Cmids currently mid-add, reserved synchronously before any await - the hidden
+ * cmids[] input the duplicate check below also relies on is only appended after
+ * two awaits (a string fetch and a template render), so without this a fast
+ * double click/drop could pass that check twice before the first call ever
+ * got there, adding the same activity to the cart twice.
+ * @type {Set<number>}
+ */
+const pendingCmids = new Set();
+
 export default class Item {
     /**
      * @type {BaseFactory}
@@ -45,10 +55,13 @@ export default class Item {
 
         const {form, cartItems} = elements;
 
-        // Prevent duplicate additions.
-        if (form.querySelector(`${SELECTORS.CART_CMIDS_INPUT}[value="${cmid}"]`)) {
+        // Prevent duplicate additions - pendingCmids is reserved synchronously,
+        // before any await, so a second call for the same cmid can't slip past
+        // both checks while the first is still mid-flight (see its docblock).
+        if (pendingCmids.has(cmid) || form.querySelector(`${SELECTORS.CART_CMIDS_INPUT}[value="${cmid}"]`)) {
             return null;
         }
+        pendingCmids.add(cmid);
 
         // Fetch the activity name directly from Moodle's reactive state.
         const cmState = reactive.state.cm.get(cmid);
@@ -73,6 +86,8 @@ export default class Item {
         } catch (error) {
             ajax.notifyException(error);
             return null;
+        } finally {
+            pendingCmids.delete(cmid);
         }
     }
 }

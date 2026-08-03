@@ -113,9 +113,13 @@ export function showSummary(root, errors, heading) {
     let summary = root.querySelector('.activitycopycart-error-summary');
 
     if (!summary) {
+        // Falls back to building the placeholder if the template's own one (matched
+        // above) isn't there for some reason - inserted into the modal's body region,
+        // not root.prepend()'d onto the whole modal wrapper (outside header/body/footer).
         summary = document.createElement('div');
         summary.className = 'activitycopycart-error-summary';
-        root.prepend(summary);
+        const body = root.querySelector('[data-region="body"]') ?? root;
+        body.prepend(summary);
     }
 
     summary.replaceChildren();

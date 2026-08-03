@@ -143,6 +143,27 @@ final class repository {
         return array_values($DB->get_records('block_activity_copy_cart_job', ['userid' => $userid], 'timecreated DESC'));
     }
 
+    /**
+     * Finds non-terminal jobs that haven't been touched in over $stalledafter seconds - a
+     * job an adhoc task should have kept progressing, had it not died without a catchable
+     * \Throwable (PHP fatal error, timeout, OOM, server restart).
+     *
+     * @param int $stalledafter Seconds of inactivity before a non-terminal job counts as stalled
+     * @return \stdClass[]
+     */
+    public static function get_stalled_jobs(int $stalledafter): array {
+        global $DB;
+
+        [$insql, $inparams] = $DB->get_in_or_equal([job::STATUS_PENDING, job::STATUS_RUNNING], SQL_PARAMS_NAMED);
+        $inparams['cutoff'] = time() - $stalledafter;
+
+        return array_values($DB->get_records_select(
+            'block_activity_copy_cart_job',
+            "status $insql AND timemodified < :cutoff",
+            $inparams
+        ));
+    }
+
     public static function delete_job(int $jobid): void {
         global $DB;
         $DB->delete_records('block_activity_copy_cart_bkp', ['jobid' => $jobid]);
