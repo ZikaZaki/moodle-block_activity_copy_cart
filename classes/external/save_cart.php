@@ -33,7 +33,6 @@ class save_cart extends external_api {
                 new external_single_structure([
                     'cmid' => new external_value(PARAM_INT, 'Course module id'),
                     'rename' => new external_value(PARAM_TEXT, '', VALUE_DEFAULT, ''),
-                    'userdata' => new external_value(PARAM_BOOL, '', VALUE_DEFAULT, false),
                     'sectionmatch' => new external_value(PARAM_ALPHA, '', VALUE_DEFAULT, ''),
                     'section' => new external_value(PARAM_INT, '', VALUE_DEFAULT, 0),
                     'sectionname' => new external_value(PARAM_TEXT, '', VALUE_DEFAULT, ''),

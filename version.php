@@ -26,7 +26,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'block_activity_copy_cart';
-$plugin->version   = 2026073103;
+$plugin->version   = 2026080300;
 $plugin->requires  = 2023100912; // Moodle 4.3.0
-$plugin->release   = '1.0.0';
+$plugin->release   = '1.0.1';
 $plugin->maturity  = MATURITY_STABLE;

@@ -115,9 +115,8 @@ $string['visibilityshow'] = 'Show';
 $string['visibilityhide'] = 'Hide';
 $string['settingsadvanced'] = 'Advanced';
 $string['groupcontentdata'] = 'Activity content & data';
-$string['contentdata_info'] = 'Access restrictions may reference dates, groups or grades that do not exist in the target course. User data (e.g. submissions) is rarely appropriate to copy between courses.';
+$string['contentdata_info'] = 'Access restrictions may reference dates, groups or grades that do not exist in the target course.';
 $string['keeprestrictions'] = 'Keep access restrictions (dates, groups, grade conditions, etc.)';
-$string['includeuserdata'] = 'Include user data';
 
 // Target Section Details group.
 $string['settingsplacement'] = 'Placement';

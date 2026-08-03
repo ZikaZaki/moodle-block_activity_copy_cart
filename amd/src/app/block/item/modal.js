@@ -77,7 +77,6 @@ function buildContext(reactive, cmid, cmName, saved) {
         {
             cmid,
             cmName,
-            keepuserdata: saved.userdata === '1',
             keeprestrictions: saved.restrictions === '1',
             sections: getSectionsContext(reactive, currentSectionNum),
         },
@@ -157,10 +156,15 @@ export default class Modal {
             };
 
             const modal = await ModalSaveCancel.create({
-                title: `${title}: ${cmName}`,
+                title,
                 show: true,
                 removeOnClose: true
             });
+
+            // cmName is untrusted (an activity name) - append it as a text node rather than
+            // concatenating it into the title string, since Modal#setTitle() inserts that
+            // string as raw HTML.
+            modal.getTitle()[0]?.appendChild(document.createTextNode(`: ${cmName}`));
 
             modal.setBodyContent(
                 template.renderTemplate('block_activity_copy_cart/block/item/settings/modal', templateContext)

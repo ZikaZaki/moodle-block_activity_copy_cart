@@ -2,6 +2,7 @@
 
 namespace block_activity_copy_cart\app\copy;
 
+use block_activity_copy_cart\app\block\item_settings;
 use block_activity_copy_cart\app\block\manager as cart_manager;
 use block_activity_copy_cart\exception\exception;
 use block_activity_copy_cart\task\backup_task;
@@ -169,5 +170,71 @@ final class manager_test extends \advanced_testcase {
 
         $newcm = get_coursemodule_from_id('page', (int) $results[0]->newcmid, $targetcourse->id, false, MUST_EXIST);
         $this->assertSame('Pipeline page', $DB->get_field('page', 'name', ['id' => $newcm->instance]));
+    }
+
+    public function test_negative_section_number_is_skipped_not_created(): void {
+        global $DB;
+
+        $this->setAdminUser();
+
+        $sourcecourse = $this->getDataGenerator()->create_course();
+        $targetcourse = $this->getDataGenerator()->create_course();
+        $page = $this->getDataGenerator()->create_module('page', [
+            'course' => $sourcecourse->id,
+            'name' => 'Malicious section page',
+        ]);
+
+        $cart = cart_manager::build([$page->cmid], [
+            (string) $page->cmid => [
+                'sectionmatch' => item_settings::SECTION_MATCH_POSITION,
+                'section' => -5,
+                'sectionmissing' => item_settings::SECTION_MISSING_CREATE,
+            ],
+        ]);
+        $jobid = manager::create_job($cart, [$targetcourse->id]);
+
+        manager::process_backups($jobid);
+        manager::process_restores($jobid);
+
+        $results = repository::get_results($jobid);
+        $this->assertCount(1, $results);
+        $this->assertSame('skipped', $results[0]->status);
+        $this->assertFalse(
+            $DB->record_exists('course_sections', ['course' => $targetcourse->id, 'section' => -5]),
+            'A negative section number must never be inserted into course_sections.'
+        );
+    }
+
+    public function test_wildly_out_of_range_section_number_is_skipped_not_created(): void {
+        global $DB;
+
+        $this->setAdminUser();
+
+        $sourcecourse = $this->getDataGenerator()->create_course();
+        $targetcourse = $this->getDataGenerator()->create_course();
+        $page = $this->getDataGenerator()->create_module('page', [
+            'course' => $sourcecourse->id,
+            'name' => 'Malicious section page',
+        ]);
+
+        $cart = cart_manager::build([$page->cmid], [
+            (string) $page->cmid => [
+                'sectionmatch' => item_settings::SECTION_MATCH_POSITION,
+                'section' => 999999,
+                'sectionmissing' => item_settings::SECTION_MISSING_CREATE,
+            ],
+        ]);
+        $jobid = manager::create_job($cart, [$targetcourse->id]);
+
+        manager::process_backups($jobid);
+        manager::process_restores($jobid);
+
+        $results = repository::get_results($jobid);
+        $this->assertCount(1, $results);
+        $this->assertSame('skipped', $results[0]->status);
+        $this->assertFalse(
+            $DB->record_exists('course_sections', ['course' => $targetcourse->id, 'section' => 999999]),
+            'A wildly out-of-range section number must never be inserted into course_sections.'
+        );
     }
 }
