@@ -21,6 +21,14 @@ final class manager {
     const CHUNK_SIZE = 10;
 
     /**
+     * @var int Maximum (cart items x target courses) units a single job may create - protects the
+     *  site's adhoc task queue from one "Copy Activities" click enqueueing an unbounded number of
+     *  restore units (see target\courses_tree::MAX_TARGET_COURSES for the other half of this cap,
+     *  applied to the target-course count alone before it ever reaches here).
+     */
+    const MAX_TOTAL_UNITS = 5000;
+
+    /**
      * Fetches a job, refusing access to anyone but its owner (or a site admin).
      *
      * @param int $jobid
@@ -59,6 +67,11 @@ final class manager {
      */
     public static function create_job(array $cart, array $targetcourseids): int {
         global $DB, $USER;
+
+        $totalunits = count($cart['items']) * count($targetcourseids);
+        if ($totalunits > self::MAX_TOTAL_UNITS) {
+            throw new exception('errorjobtoolarge', self::MAX_TOTAL_UNITS);
+        }
 
         // Atomic: an interruption between any of these three writes would otherwise leave
         // either a job with no backup rows, or a job that never got a task queued for it -
@@ -116,7 +129,7 @@ final class manager {
         repository::update_job($jobid, ['status' => job::STATUS_RUNNING]);
 
         $cart = json_decode($job->cart, true);
-        $chunk = array_slice(repository::get_pending_job_backups($jobid), 0, self::BACKUP_CHUNK_SIZE);
+        $chunk = repository::get_pending_job_backups($jobid, self::BACKUP_CHUNK_SIZE);
 
         foreach ($chunk as $backuprow) {
             self::process_one_backup($backuprow, $cart['items'][$backuprow->sourcecmid] ?? null, $job->userid);
@@ -224,13 +237,14 @@ final class manager {
      */
     private static function process_pair(int $jobid, int $userid, array $item, int $targetcourseid, ?\stdClass $backuprow): void {
         if ($backuprow === null || $backuprow->status !== 'done') {
+            $default = get_string('errorbackupfailed', 'block_activity_copy_cart');
             repository::add_result(
                 $jobid,
                 $item['cmid'],
                 $targetcourseid,
                 null,
                 'failed',
-                $backuprow->message ?? get_string('errorbackupfailed', 'block_activity_copy_cart')
+                $backuprow !== null ? ($backuprow->message ?? $default) : $default
             );
             return;
         }
@@ -260,6 +274,9 @@ final class manager {
      * @return array List of [item, targetcourseid] tuples
      */
     private static function pending_pairs(array $items, array $targetcourseids, array $processed): array {
+        // Recomputed in full on every chunk execution rather than being a DB-driven "next N"
+        // query - acceptable now that create_job() rejects anything over MAX_TOTAL_UNITS, which
+        // bounds count($items) * count($targetcourseids) for the lifetime of any given job.
         $pairs = [];
         foreach ($items as $item) {
             foreach ($targetcourseids as $targetcourseid) {
@@ -282,11 +299,18 @@ final class manager {
      * @return void
      */
     private static function cleanup_consumed_backups(int $jobid, array $backups, int $targetcourseidcount): void {
+        if (empty($backups)) {
+            return;
+        }
+
+        // One grouped query instead of one COUNT per cart item, every chunk execution.
+        $resultcounts = repository::count_results_by_cmid($jobid);
+
         foreach ($backups as $sourcecmid => $backuprow) {
             if ($backuprow->status !== 'done' || $backuprow->timecleaned !== null) {
                 continue;
             }
-            if (repository::count_results_for_cmid($jobid, $sourcecmid) < $targetcourseidcount) {
+            if (($resultcounts[$sourcecmid] ?? 0) < $targetcourseidcount) {
                 continue;
             }
             \backup_helper::delete_backup_dir($backuprow->backupid);

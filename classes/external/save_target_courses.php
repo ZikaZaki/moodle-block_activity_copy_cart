@@ -8,11 +8,19 @@ use core_external\external_multiple_structure;
 use core_external\external_single_structure;
 use core_external\external_value;
 use block_activity_copy_cart\app\target\repository;
+use block_activity_copy_cart\exception\exception;
 use block_activity_copy_cart\traits\course_authorization;
 
 
 class save_target_courses extends external_api {
     use course_authorization;
+
+    /**
+     * @var int Maximum course/category ids accepted in one autosave call - matches
+     *  target\courses_tree::MAX_TARGET_COURSES, the cap applied to the same conceptual
+     *  "how many targets can one selection resolve to" limit at confirm time.
+     */
+    private const MAX_IDS = 1000;
 
     public static function execute_parameters(): external_function_parameters {
         return new external_function_parameters([
@@ -40,6 +48,10 @@ class save_target_courses extends external_api {
         ]);
 
         self::authorize_course($params['sourcecourseid']);
+
+        if (count($params['courseids']) > self::MAX_IDS || count($params['categoryids']) > self::MAX_IDS) {
+            throw new exception('errortoomanyitems', self::MAX_IDS);
+        }
 
         repository::save($params['sourcecourseid'], $params['courseids'], $params['categoryids']);
 

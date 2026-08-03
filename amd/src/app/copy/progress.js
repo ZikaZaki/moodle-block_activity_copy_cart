@@ -2,6 +2,9 @@ import BaseFactory from '../factory';
 import SELECTORS from './selectors';
 
 const POLL_INTERVAL_MS = 3000;
+// A transient network hiccup shouldn't permanently freeze the progress page while the job is
+// still genuinely running server-side - retry a bounded number of times before giving up.
+const MAX_POLL_RETRIES = 5;
 
 export default class Progress {
     /**
@@ -51,8 +54,9 @@ export default class Progress {
      * own equivalent poller only stops on the literal string 'completed' and
      * polls forever after a failure.
      * @param {number} jobid
+     * @param {number} [retriesLeft] - Remaining retry budget for a transient (network/server) error
      */
-    async #poll(jobid) {
+    async #poll(jobid, retriesLeft = MAX_POLL_RETRIES) {
         const root = document.querySelector(SELECTORS.COPY_PROGRESS_ROOT);
         if (!root) {
             return;
@@ -63,9 +67,15 @@ export default class Progress {
             const response = await ajax.call('block_activity_copy_cart_get_job_progress', {jobid});
             await this.#render(root, response);
             if (!response.isterminal) {
-                window.setTimeout(() => this.#poll(jobid), POLL_INTERVAL_MS);
+                // Reset the retry budget on every success, so an earlier blip doesn't eat into
+                // a later, unrelated one.
+                window.setTimeout(() => this.#poll(jobid, MAX_POLL_RETRIES), POLL_INTERVAL_MS);
             }
         } catch (error) {
+            if (retriesLeft > 0) {
+                window.setTimeout(() => this.#poll(jobid, retriesLeft - 1), POLL_INTERVAL_MS);
+                return;
+            }
             ajax.notifyException(error);
         }
     }

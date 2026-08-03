@@ -68,8 +68,6 @@ class block_activity_copy_cart extends block_base {
 
         $this->page->requires->js_call_amd('block_activity_copy_cart/local/block', 'init', [
             'activitycopycart-root',
-            has_capability('moodle/backup:userinfo', $coursecontext),
-            has_capability('moodle/backup:anonymise', $coursecontext),
             $canbackup,
             $this->page->user_is_editing(),
         ]);
@@ -98,7 +96,9 @@ class block_activity_copy_cart extends block_base {
      * @return bool True if the global configuration is enabled.
      */
     public function has_config() {
-        return true;
+        // settings.php has no actual settings yet - flip this back to true once it does,
+        // rather than shipping a "Settings" link that leads to an empty page.
+        return false;
     }
 
     /**

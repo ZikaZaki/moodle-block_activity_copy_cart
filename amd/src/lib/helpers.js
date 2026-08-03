@@ -1,12 +1,16 @@
 /**
  * Reads a previously saved hidden input value, falling back to a default
- * when the item has no saved settings yet.
+ * when the item has no saved settings yet. Scoped to a given root (the cart
+ * form, in every current caller) rather than a global document.getElementById()
+ * lookup, matching setHiddenInput()'s own form-scoped lookup below - so both
+ * stay correct together if this plugin's page ever has more than one form.
+ * @param {ParentNode} scope - The element to search within (typically the cart form)
  * @param {string} id - The DOM ID of the hidden input
  * @param {string} fallback - The value to use when nothing was saved yet
  * @return {string}
  */
-export const getSavedValue = (id, fallback) => {
-    const value = document.getElementById(id)?.value;
+export const getSavedValue = (scope, id, fallback) => {
+    const value = scope.querySelector(`#${id}`)?.value;
     return (value === undefined || value === '') ? fallback : value;
 };
 

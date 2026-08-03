@@ -24,6 +24,11 @@ class get_job_progress extends external_api {
 
         self::validate_context(\context_system::instance());
 
+        // Deliberately ownership-based, not a capability check: db/services.php still declares
+        // block/activity_copy_cart:copyactivities for this function (consistent with the other
+        // three), but a teacher should still be able to see their own job's outcome even if that
+        // capability was revoked after the job started - copy\manager::has_source_capability()
+        // already handles that case at process time (errorsourcecapabilitylost).
         global $USER;
         $job = manager::require_owned_job($params['jobid'], (int) $USER->id);
 

@@ -35,6 +35,19 @@ final class restore {
      * @return array{newcmid: int|null, status: string, message: string|null}
      */
     public static function into_course(string $backupid, array $item, int $targetcourseid, int $userid): array {
+        // Serializes restores into the same target course - without it, two concurrently-running
+        // jobs (e.g. two teachers copying similarly-named content into the same course around the
+        // same time) can both decide "section missing, create it" or compute the same disambiguating
+        // rename, and both act on it. Waits rather than failing outright: a single activity restore
+        // is normally fast, so contention should clear well within this window - a unit that fails
+        // here is never automatically retried, so failing fast on contention would make lock
+        // contention worse than the race it prevents.
+        $lockfactory = \core\lock\lock_config::get_lock_factory('block_activity_copy_cart_restore');
+        $lock = $lockfactory->get_lock('targetcourse_' . $targetcourseid, 60);
+        if (!$lock) {
+            return ['newcmid' => null, 'status' => 'failed', 'message' => get_string('errortargetcourselocked', 'block_activity_copy_cart')];
+        }
+
         try {
             $sectionnum = self::resolve_target_section($item, $targetcourseid);
             if ($sectionnum === null) {
@@ -62,7 +75,14 @@ final class restore {
 
             return ['newcmid' => $newcmid, 'status' => 'success', 'message' => null];
         } catch (\Throwable $e) {
+            debugging(
+                'block_activity_copy_cart: restore failed for cmid ' . $item['cmid'] .
+                ' into course ' . $targetcourseid . ': ' . $e->getMessage(),
+                DEBUG_DEVELOPER
+            );
             return ['newcmid' => null, 'status' => 'failed', 'message' => $e->getMessage()];
+        } finally {
+            $lock->release();
         }
     }
 

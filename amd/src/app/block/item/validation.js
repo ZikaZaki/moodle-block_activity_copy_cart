@@ -92,7 +92,11 @@ export function showErrors(root, errors) {
             return;
         }
 
-        const container = field.closest('.form-group, div');
+        // .closest() with a selector list returns whichever ancestor is nearest, not "prefer
+        // .form-group" - for the three radio-group fields, each radio's own tight
+        // "form-check form-check-inline" wrapper is closer than the field's real .form-group,
+        // so the plain 'div' alternative must only be a fallback, never checked in parallel.
+        const container = field.closest('.form-group') ?? field.closest('div');
         container.classList.add('activitycopycart-has-error');
 
         const error = document.createElement('div');

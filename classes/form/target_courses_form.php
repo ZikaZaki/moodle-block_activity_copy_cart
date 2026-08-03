@@ -72,8 +72,10 @@ class target_courses_form extends moodleform {
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
 
-        $hascourses = !empty($data['targetcourseids']);
-        $hascategories = !empty($data['targetcategoryids']);
+        // Use !== '' rather than !empty(): course/category ids always start at 1, but empty()
+        // would also (wrongly) treat a literal "0" string as "nothing selected".
+        $hascourses = ($data['targetcourseids'] ?? '') !== '';
+        $hascategories = ($data['targetcategoryids'] ?? '') !== '';
         if (!$hascourses && !$hascategories) {
             $errors['targettreeerror'] = get_string('notargetschosen', 'block_activity_copy_cart');
         }

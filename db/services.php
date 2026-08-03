@@ -53,6 +53,8 @@ $functions = [
         'description' => 'Polled by the copy progress page to report a job\'s status and per-item results.',
         'type' => 'read',
         'ajax' => true,
+        // Declared for consistency with the other three functions, but execute() authorizes by
+        // job ownership instead - see its own docblock comment for why.
         'capabilities' => 'block/activity_copy_cart:copyactivities',
     ],
 ];

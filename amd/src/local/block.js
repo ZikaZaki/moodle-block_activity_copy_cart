@@ -29,8 +29,6 @@ export default class Block extends BaseComponent {
         // Default query selectors.
         this.selectors = {};
 
-        this.canBackupUserdata = descriptor.canBackupUserdata ?? false;
-        this.canAnonymizeUserdata = descriptor.canAnonymizeUserdata ?? false;
         this.canBackup = descriptor.canBackup ?? false;
         this.showCopyToCartIcon = descriptor.showCopyToCartIcon ?? false;
     }
@@ -39,17 +37,13 @@ export default class Block extends BaseComponent {
      * Static method to create a component instance from the mustache template.
      *
      * @param {String} target - DOM id of the block's root element
-     * @param {Boolean} canBackupUserdata
-     * @param {Boolean} canAnonymizeUserdata
      * @param {Boolean} canBackup
      * @param {Boolean} showCopyToCartIcon
      */
-    static init(target, canBackupUserdata, canAnonymizeUserdata, canBackup, showCopyToCartIcon) {
+    static init(target, canBackup, showCopyToCartIcon) {
         return new this({
             element: document.getElementById(target),
             reactive: getCurrentCourseEditor(),
-            canBackupUserdata,
-            canAnonymizeUserdata,
             canBackup,
             showCopyToCartIcon
         });
@@ -63,8 +57,6 @@ export default class Block extends BaseComponent {
     stateReady() {
         this.baseFactory = BaseFactory.make(this);
         const {course, block, queue} = this.baseFactory.block().eventHandler().onLoad(
-            this.canBackupUserdata,
-            this.canAnonymizeUserdata,
             this.canBackup,
             this.showCopyToCartIcon
         );

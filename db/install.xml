@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="blocks/activity_copy_cart/db" VERSION="20260731" COMMENT="XMLDB file for Moodle blocks/activity_copy_cart"
+<XMLDB PATH="blocks/activity_copy_cart/db" VERSION="20260803" COMMENT="XMLDB file for Moodle blocks/activity_copy_cart"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 >
   <TABLES>
@@ -8,8 +8,8 @@
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The teacher who started the copy - the adhoc task runs as this user (set_userid()), and this is also who the job belongs to for privacy/ownership purposes."/>
         <FIELD NAME="sourcecourseid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="cart" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="JSON snapshot of the parsed cart (see cart\parser), so the job is self-sufficient once queued."/>
-        <FIELD NAME="targetcourseids" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="JSON array of already-validated target course ids (see target\course_validator::filter())."/>
+        <FIELD NAME="cart" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="JSON snapshot of the parsed cart (see app\block\manager::build()), so the job is self-sufficient once queued."/>
+        <FIELD NAME="targetcourseids" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="JSON array of already-validated target course ids (see app\target\courses_tree::filter())."/>
         <FIELD NAME="status" TYPE="char" LENGTH="30" NOTNULL="true" SEQUENCE="false" DEFAULT="pending" COMMENT="pending|running|completed|completed_with_errors|failed"/>
         <FIELD NAME="totalunits" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" DEFAULT="0" COMMENT="count(cart items) * count(target courses), computed once at creation."/>
         <FIELD NAME="completedunits" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" DEFAULT="0"/>
@@ -61,6 +61,7 @@
       </KEYS>
       <INDEXES>
         <INDEX NAME="jobid_idx" UNIQUE="false" FIELDS="jobid"/>
+        <INDEX NAME="jobid_cmid_idx" UNIQUE="false" FIELDS="jobid, sourcecmid"/>
       </INDEXES>
     </TABLE>
   </TABLES>
