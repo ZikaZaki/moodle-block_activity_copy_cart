@@ -20,7 +20,9 @@ final class cart_block_test extends \advanced_testcase {
 
         $this->assertSame('', $data['cartitemshtml']);
         $this->assertSame('', $data['hiddenfieldshtml']);
-        $this->assertSame($course->id, $data['courseid']);
+        // cart_block's constructor takes a typed `int $courseid`, so PHP coerces it on the way
+        // in; the generator's own ->id is not guaranteed to be typed the same way.
+        $this->assertSame((int) $course->id, $data['courseid']);
     }
 
     public function test_export_for_template_with_a_matching_cart(): void {
