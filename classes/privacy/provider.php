@@ -22,13 +22,27 @@ class provider implements
             'targetcourseids' => 'privacy:metadata:job:targetcourseids',
             'status' => 'privacy:metadata:job:status',
             'timecreated' => 'privacy:metadata:job:timecreated',
+            'timemodified' => 'privacy:metadata:job:timemodified',
         ], 'privacy:metadata:job');
 
         $collection->add_database_table('block_activity_copy_cart_bkp', [
             'jobid' => 'privacy:metadata:jobbackup:jobid',
             'sourcecmid' => 'privacy:metadata:jobbackup:sourcecmid',
+            'backupid' => 'privacy:metadata:jobbackup:backupid',
             'status' => 'privacy:metadata:jobbackup:status',
+            'message' => 'privacy:metadata:jobbackup:message',
+            'timecleaned' => 'privacy:metadata:jobbackup:timecleaned',
         ], 'privacy:metadata:jobbackup');
+
+        $collection->add_database_table('block_activity_copy_cart_res', [
+            'jobid' => 'privacy:metadata:jobresult:jobid',
+            'sourcecmid' => 'privacy:metadata:jobresult:sourcecmid',
+            'targetcourseid' => 'privacy:metadata:jobresult:targetcourseid',
+            'newcmid' => 'privacy:metadata:jobresult:newcmid',
+            'status' => 'privacy:metadata:jobresult:status',
+            'message' => 'privacy:metadata:jobresult:message',
+            'timecreated' => 'privacy:metadata:jobresult:timecreated',
+        ], 'privacy:metadata:jobresult');
 
         return $collection;
     }
@@ -61,6 +75,21 @@ class provider implements
                     'completedunits' => $job->completedunits,
                     'totalunits' => $job->totalunits,
                     'timecreated' => transform::datetime($job->timecreated),
+                    'timemodified' => transform::datetime($job->timemodified),
+                    // Every per-unit result belongs to this job (and thus this user) just as
+                    // much as the job row itself does - export it too, so an export actually
+                    // covers everything delete_data_for_user() removes.
+                    'results' => array_map(
+                        fn(\stdClass $result): object => (object) [
+                            'sourcecmid' => $result->sourcecmid,
+                            'targetcourseid' => $result->targetcourseid,
+                            'newcmid' => $result->newcmid,
+                            'status' => $result->status,
+                            'message' => $result->message,
+                            'timecreated' => transform::datetime($result->timecreated),
+                        ],
+                        repository::get_results($job->id)
+                    ),
                 ];
             }
 

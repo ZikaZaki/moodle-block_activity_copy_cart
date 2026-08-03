@@ -205,6 +205,44 @@ final class manager_test extends \advanced_testcase {
         );
     }
 
+    public function test_recover_stalled_jobs_requeues_backup_task_when_backups_pending(): void {
+        $user = $this->getDataGenerator()->create_user();
+        $jobid = repository::create_job($user->id, 3, ['sourcecourseid' => 3, 'items' => []], []);
+        repository::create_job_backups($jobid, [10]);
+        // Simulate a job whose adhoc task died without ever touching it again.
+        global $DB;
+        $DB->set_field('block_activity_copy_cart_job', 'timemodified', time() - (4 * HOURSECS), ['id' => $jobid]);
+
+        $recovered = manager::recover_stalled_jobs(3 * HOURSECS);
+
+        $this->assertSame(1, $recovered);
+        $queued = \core\task\manager::get_adhoc_tasks(backup_task::class);
+        $matching = array_filter($queued, fn($task) => (int) $task->get_custom_data()->jobid === $jobid);
+        $this->assertNotEmpty($matching, 'A stalled job with pending backups must get a fresh backup_task queued.');
+    }
+
+    public function test_recover_stalled_jobs_ignores_recently_touched_jobs(): void {
+        $user = $this->getDataGenerator()->create_user();
+        $jobid = repository::create_job($user->id, 3, ['sourcecourseid' => 3, 'items' => []], []);
+        repository::create_job_backups($jobid, [10]);
+
+        $recovered = manager::recover_stalled_jobs(3 * HOURSECS);
+
+        $this->assertSame(0, $recovered, 'A job touched moments ago must not be treated as stalled.');
+    }
+
+    public function test_recover_stalled_jobs_ignores_terminal_jobs(): void {
+        $user = $this->getDataGenerator()->create_user();
+        $jobid = repository::create_job($user->id, 3, ['sourcecourseid' => 3, 'items' => []], []);
+        repository::update_job($jobid, ['status' => job::STATUS_COMPLETED]);
+        global $DB;
+        $DB->set_field('block_activity_copy_cart_job', 'timemodified', time() - (4 * HOURSECS), ['id' => $jobid]);
+
+        $recovered = manager::recover_stalled_jobs(3 * HOURSECS);
+
+        $this->assertSame(0, $recovered, 'A completed job must never be requeued, no matter how old.');
+    }
+
     public function test_wildly_out_of_range_section_number_is_skipped_not_created(): void {
         global $DB;
 
