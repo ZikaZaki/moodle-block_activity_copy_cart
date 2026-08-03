@@ -10,6 +10,30 @@ use block_activity_copy_cart\exception\exception;
  */
 final class manager {
     /**
+     * Resolves and returns the single course every given cmid belongs to - the cheap first step
+     * of build(), extracted so callers can authorize against the real source course before paying
+     * for build()'s more expensive per-item hydration (get_fast_modinfo(), name/icon formatting).
+     *
+     * @param array $cmids
+     * @return int
+     * @throws exception If the cmids don't all belong to exactly one course
+     */
+    public static function resolve_source_course(array $cmids): int {
+        global $DB;
+
+        if (empty($cmids)) {
+            throw new exception('cartempty');
+        }
+
+        [$insql, $inparams] = $DB->get_in_or_equal($cmids, SQL_PARAMS_NAMED);
+        $courseids = array_unique($DB->get_fieldset_select('course_modules', 'course', "id $insql", $inparams));
+        if (count($courseids) !== 1) {
+            throw new exception('cartinvalid');
+        }
+        return (int) reset($courseids);
+    }
+
+    /**
      * Builds a cart directly from the current request's cmids[]/rename[]/etc. arrays.
      *
      * @return array
@@ -94,7 +118,11 @@ final class manager {
                 'contextid' => $cminfo->context->id,
                 'rename' => trim($raw['rename'] ?? ''),
                 'sectionmatch' => item_settings::sanitize('sectionmatch', $raw['sectionmatch'] ?? null),
-                'section' => isset($raw['section']) ? (int) $raw['section'] : $ownsection,
+                // The save_cart AJAX endpoint's schema fills in a default of -1 (never a real
+                // section number) for an omitted section, unlike the direct POST path where a
+                // truly-absent key is null - checking >= 0 treats both the same way, rather than
+                // isset() alone silently accepting the AJAX default as if it were explicit.
+                'section' => (isset($raw['section']) && (int) $raw['section'] >= 0) ? (int) $raw['section'] : $ownsection,
                 'sectionname' => $raw['sectionname'] ?? get_section_name($course, $ownsection),
                 'sectionmissing' => item_settings::sanitize('sectionmissing', $raw['sectionmissing'] ?? null),
                 'nameconflict' => item_settings::sanitize('nameconflict', $raw['nameconflict'] ?? null),

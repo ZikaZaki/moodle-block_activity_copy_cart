@@ -103,7 +103,9 @@ export default class Template {
 
         const {html, js} = await this.renderTemplate(template, data);
 
-        return await Templates.replaceNode(
+        // Templates.replaceNode() returns its array of nodes synchronously, not a promise -
+        // no await here (an earlier one was misleading, implying otherwise).
+        return Templates.replaceNode(
             element,
             html,
             js
@@ -123,7 +125,9 @@ export default class Template {
 
         const {html, js} = await this.renderFragment(component, fragment, contextId, data);
 
-        return await Templates.replaceNode(
+        // Templates.replaceNode() returns its array of nodes synchronously, not a promise -
+        // no await here (an earlier one was misleading, implying otherwise).
+        return Templates.replaceNode(
             element,
             html,
             js

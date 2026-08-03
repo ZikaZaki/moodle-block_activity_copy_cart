@@ -7,13 +7,16 @@ import Settings from './settings';
 import {validate, clearErrors, showErrors, showSummary} from './validation';
 import {getSavedValue, setHiddenInput} from '../../../lib/helpers';
 
+// Each request carries its own validationStrings field name, so reordering or adding an
+// entry can't silently desync a request from the wrong resolved string - see how this is
+// consumed in show() below, which pairs field/string by walking this same array, not by
+// positional destructuring of a separately-maintained array of resolved values.
 const VALIDATION_STRING_REQUESTS = [
-    {key: 'error_sectionrequired', component: 'block_activity_copy_cart'},
-    {key: 'error_sectionmatchrequired', component: 'block_activity_copy_cart'},
-    {key: 'error_sectionmissingrequired', component: 'block_activity_copy_cart'},
-    {key: 'error_nameconflictrequired', component: 'block_activity_copy_cart'},
-    {key: 'error_visibilityrequired', component: 'block_activity_copy_cart'},
-    {key: 'error_summaryheading', component: 'block_activity_copy_cart'},
+    {field: 'section', key: 'error_sectionrequired', component: 'block_activity_copy_cart'},
+    {field: 'sectionmatch', key: 'error_sectionmatchrequired', component: 'block_activity_copy_cart'},
+    {field: 'sectionmissing', key: 'error_sectionmissingrequired', component: 'block_activity_copy_cart'},
+    {field: 'nameconflict', key: 'error_nameconflictrequired', component: 'block_activity_copy_cart'},
+    {field: 'visibility', key: 'error_visibilityrequired', component: 'block_activity_copy_cart'},
 ];
 
 /**
@@ -91,14 +94,15 @@ function buildContext(reactive, cmid, cmName, saved) {
  * Retrieves the saved settings for a given course module ID (cmid) from
  * the cart form's own hidden inputs.
  * @param {number} cmid - The course module ID
+ * @param {HTMLFormElement} form - The cart form the saved hidden inputs live on
  * @returns {Object} An object containing the saved settings for the activity
  */
-function getSavedSettings(cmid) {
+function getSavedSettings(cmid, form) {
 
     const saved = {};
 
     Settings.SETTINGS_FIELDS.forEach(({key, defaultValue}) => {
-        saved[key] = getSavedValue(`${key}-hidden-${cmid}`, defaultValue);
+        saved[key] = getSavedValue(form, `${key}-hidden-${cmid}`, defaultValue);
     });
 
     return saved;
@@ -127,33 +131,24 @@ export default class Modal {
      * @returns {Promise} Resolves when the modal is shown and event handlers are set up
      */
     async show(reactive, elements, cmid, cmName) {
-        const currentRename = getSavedValue(`rename-hidden-${cmid}`, cmName);
-        const saved = getSavedSettings(cmid);
+        const currentRename = getSavedValue(elements.form, `rename-hidden-${cmid}`, cmName);
+        const saved = getSavedSettings(cmid, elements.form);
         const templateContext = buildContext(reactive, cmid, currentRename, saved);
 
         const ajax = this.#baseFactory.moodle().ajax();
         const template = this.#baseFactory.moodle().template();
 
         try {
-            const [title, [
-                sectionRequired,
-                sectionMatchRequired,
-                sectionMissingRequired,
-                nameConflictRequired,
-                visibilityRequired,
-                summaryHeading
-            ]] = await Promise.all([
+            const [title, resolvedValidationStrings, summaryHeading] = await Promise.all([
                 ajax.getString('settings', 'block_activity_copy_cart'),
-                ajax.getStrings(VALIDATION_STRING_REQUESTS)
+                ajax.getStrings(VALIDATION_STRING_REQUESTS),
+                ajax.getString('error_summaryheading', 'block_activity_copy_cart'),
             ]);
 
-            const validationStrings = {
-                section: sectionRequired,
-                sectionmatch: sectionMatchRequired,
-                sectionmissing: sectionMissingRequired,
-                nameconflict: nameConflictRequired,
-                visibility: visibilityRequired,
-            };
+            const validationStrings = {};
+            VALIDATION_STRING_REQUESTS.forEach(({field}, index) => {
+                validationStrings[field] = resolvedValidationStrings[index];
+            });
 
             const modal = await ModalSaveCancel.create({
                 title,
@@ -161,10 +156,11 @@ export default class Modal {
                 removeOnClose: true
             });
 
-            // cmName is untrusted (an activity name) - append it as a text node rather than
-            // concatenating it into the title string, since Modal#setTitle() inserts that
-            // string as raw HTML.
-            modal.getTitle()[0]?.appendChild(document.createTextNode(`: ${cmName}`));
+            // currentRename (not cmName) so reopening settings for an already-renamed activity
+            // shows its current name, not the pre-rename original. Appended as a text node
+            // rather than concatenated into the title string, since it's untrusted (an activity
+            // name) and Modal#setTitle() inserts that string as raw HTML.
+            modal.getTitle()[0]?.appendChild(document.createTextNode(`: ${currentRename}`));
 
             modal.setBodyContent(
                 template.renderTemplate('block_activity_copy_cart/block/item/settings/modal', templateContext)

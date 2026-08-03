@@ -55,9 +55,22 @@ final class repository {
         }
     }
 
-    public static function get_pending_job_backups(int $jobid): array {
+    /**
+     * @param int $jobid
+     * @param int|null $limit Maximum rows to return - pushed into the query itself (LIMIT), rather
+     *  than fetching every pending row and slicing in PHP, when a chunk size is given
+     * @return \stdClass[]
+     */
+    public static function get_pending_job_backups(int $jobid, ?int $limit = null): array {
         global $DB;
-        return array_values($DB->get_records('block_activity_copy_cart_bkp', ['jobid' => $jobid, 'status' => 'pending']));
+        return array_values($DB->get_records(
+            'block_activity_copy_cart_bkp',
+            ['jobid' => $jobid, 'status' => 'pending'],
+            '',
+            '*',
+            0,
+            $limit ?? 0
+        ));
     }
 
     public static function count_pending_job_backups(int $jobid): int {
@@ -119,6 +132,32 @@ final class repository {
         return $DB->count_records('block_activity_copy_cart_res', ['jobid' => $jobid, 'sourcecmid' => $sourcecmid]);
     }
 
+    /**
+     * Result counts for every cart item in a job, keyed by sourcecmid - one grouped query,
+     * for callers (like manager::cleanup_consumed_backups()) that would otherwise call
+     * count_results_for_cmid() once per cart item.
+     *
+     * @param int $jobid
+     * @return array<int, int>
+     */
+    public static function count_results_by_cmid(int $jobid): array {
+        global $DB;
+
+        $records = $DB->get_records_sql(
+            'SELECT sourcecmid, COUNT(*) AS resultcount
+               FROM {block_activity_copy_cart_res}
+              WHERE jobid = :jobid
+           GROUP BY sourcecmid',
+            ['jobid' => $jobid]
+        );
+
+        $counts = [];
+        foreach ($records as $record) {
+            $counts[(int) $record->sourcecmid] = (int) $record->resultcount;
+        }
+        return $counts;
+    }
+
     public static function count_results(int $jobid): int {
         global $DB;
         return $DB->count_records('block_activity_copy_cart_res', ['jobid' => $jobid]);
@@ -166,9 +205,14 @@ final class repository {
 
     public static function delete_job(int $jobid): void {
         global $DB;
+
+        // Atomic: this backs GDPR erasure (privacy\provider::delete_data_for_all_users_in_context())
+        // - an interruption partway through would otherwise leave orphaned rows counted as "erased."
+        $transaction = $DB->start_delegated_transaction();
         $DB->delete_records('block_activity_copy_cart_bkp', ['jobid' => $jobid]);
         $DB->delete_records('block_activity_copy_cart_res', ['jobid' => $jobid]);
         $DB->delete_records('block_activity_copy_cart_job', ['id' => $jobid]);
+        $transaction->allow_commit();
     }
 
     public static function delete_jobs_for_user(int $userid): void {

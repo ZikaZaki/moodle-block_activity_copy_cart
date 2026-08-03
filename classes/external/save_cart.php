@@ -16,6 +16,9 @@ use block_activity_copy_cart\traits\course_authorization;
 class save_cart extends external_api {
     use course_authorization;
 
+    /** @var int Maximum cart items accepted in one autosave call. */
+    private const MAX_ITEMS = 200;
+
     public static function execute_parameters(): external_function_parameters {
         return new external_function_parameters([
             'courseid' => new external_value(
@@ -34,7 +37,9 @@ class save_cart extends external_api {
                     'cmid' => new external_value(PARAM_INT, 'Course module id'),
                     'rename' => new external_value(PARAM_TEXT, '', VALUE_DEFAULT, ''),
                     'sectionmatch' => new external_value(PARAM_ALPHA, '', VALUE_DEFAULT, ''),
-                    'section' => new external_value(PARAM_INT, '', VALUE_DEFAULT, 0),
+                    // -1: never a real section number, distinguishes "not explicitly sent" from
+                    // "explicitly sent as 0" - see manager::build()'s own section-resolving line.
+                    'section' => new external_value(PARAM_INT, '', VALUE_DEFAULT, -1),
                     'sectionname' => new external_value(PARAM_TEXT, '', VALUE_DEFAULT, ''),
                     'sectionmissing' => new external_value(PARAM_ALPHA, '', VALUE_DEFAULT, ''),
                     'nameconflict' => new external_value(PARAM_ALPHA, '', VALUE_DEFAULT, ''),
@@ -61,6 +66,22 @@ class save_cart extends external_api {
             return ['result' => true];
         }
 
+        if (count($params['cmids']) > self::MAX_ITEMS || count($params['items']) > self::MAX_ITEMS) {
+            debugging('block_activity_copy_cart: skipped cart autosave - too many items submitted', DEBUG_DEVELOPER);
+            return ['result' => false];
+        }
+
+        try {
+            // Authorize against the real source course before paying for build()'s more
+            // expensive per-item hydration (get_fast_modinfo(), name/icon formatting) - resolving
+            // it is cheap (one query), so this closes the gap where an unauthorized caller could
+            // otherwise make this endpoint do that work on every probe.
+            self::authorize_course(manager::resolve_source_course($params['cmids']));
+        } catch (exception $e) {
+            debugging('block_activity_copy_cart: skipped cart autosave - ' . $e->getMessage(), DEBUG_DEVELOPER);
+            return ['result' => false];
+        }
+
         $rawitems = [];
         foreach ($params['items'] as $item) {
             $rawitems[(string) $item['cmid']] = $item;
@@ -73,7 +94,6 @@ class save_cart extends external_api {
             return ['result' => false];
         }
 
-        self::authorize_course($cart['sourcecourseid']);
         repository::save($cart);
         return ['result' => true];
     }

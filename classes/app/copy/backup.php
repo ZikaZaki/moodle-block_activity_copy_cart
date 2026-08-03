@@ -36,13 +36,20 @@ final class backup {
             $userid
         );
 
+        $backupid = $bc->get_backupid();
+
         try {
-            $backupid = $bc->get_backupid();
             $bc->execute_plan();
 
             if ($bc->get_status() !== \backup::STATUS_FINISHED_OK) {
                 throw new exception('errorbackupfailed');
             }
+        } catch (\Throwable $e) {
+            // Reclaim the temp directory now - this plugin knows immediately that this backup
+            // failed and will never be reused, rather than leaving it for Moodle's generic,
+            // delayed backup_cleanup_task to eventually find.
+            \backup_helper::delete_backup_dir($backupid);
+            throw $e;
         } finally {
             $bc->destroy();
         }
