@@ -26,6 +26,10 @@ export class TreeState {
         this.sourceCourseId = sourceCourseId;
         this.selectedCourseIds = new Set(TreeState._parseField(courseFieldId));
         this.selectedCategoryIds = new Set(TreeState._parseField(categoryFieldId));
+        // Chains autosave calls so a second one never starts before the first resolves -
+        // otherwise two overlapping requests' responses can land out of order and let an
+        // older selection silently overwrite a newer one server-side.
+        this._pendingAutosave = Promise.resolve();
         this._scheduleAutosave = debounce(() => this._autosave(), AUTOSAVE_DEBOUNCE_MS);
     }
 
@@ -200,11 +204,14 @@ export class TreeState {
      * category) autosaves once, not once per checkbox.
      */
     _autosave() {
-        const ajax = this.baseFactory.moodle().ajax();
-        ajax.call('block_activity_copy_cart_save_target_courses', {
-            sourcecourseid: this.sourceCourseId,
-            courseids: Array.from(this.selectedCourseIds),
-            categoryids: Array.from(this.selectedCategoryIds),
-        }).catch((error) => ajax.notifyException(error));
+        this._pendingAutosave = this._pendingAutosave.then(() => {
+            const ajax = this.baseFactory.moodle().ajax();
+            return ajax.call('block_activity_copy_cart_save_target_courses', {
+                sourcecourseid: this.sourceCourseId,
+                courseids: Array.from(this.selectedCourseIds),
+                categoryids: Array.from(this.selectedCategoryIds),
+            }).catch((error) => ajax.notifyException(error));
+        });
+        return this._pendingAutosave;
     }
 }

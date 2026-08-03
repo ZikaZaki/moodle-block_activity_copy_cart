@@ -75,6 +75,7 @@ $string['errortargetcapabilitylost'] = 'You no longer have permission to copy in
 $string['copycompletedmessagesubject'] = 'Your activity copy has finished';
 $string['copycompletedmessagebody'] = '{$a->completedunits} of {$a->totalunits} copies finished with status: {$a->status}.';
 $string['messageprovider:copycompleted'] = 'Notification that a queued activity copy has finished';
+$string['task_recoverstalledjobs'] = 'Recover stalled activity copy jobs';
 
 // Privacy.
 $string['privacy:metadata:job'] = 'A record of one "Copy Activities" job - which activities, into which courses, and how far it got.';
@@ -84,10 +85,22 @@ $string['privacy:metadata:job:cart'] = 'A snapshot of the activities and their p
 $string['privacy:metadata:job:targetcourseids'] = 'The courses the activities were copied into.';
 $string['privacy:metadata:job:status'] = 'The job\'s progress status.';
 $string['privacy:metadata:job:timecreated'] = 'The time the job was started.';
+$string['privacy:metadata:job:timemodified'] = 'The time the job was last updated.';
 $string['privacy:metadata:jobbackup'] = 'A record of one cart item\'s single backup within a copy job, reused across every target course that item is copied into.';
 $string['privacy:metadata:jobbackup:jobid'] = 'The copy job this backup belongs to.';
 $string['privacy:metadata:jobbackup:sourcecmid'] = 'The activity that was backed up.';
+$string['privacy:metadata:jobbackup:backupid'] = 'The internal Moodle backup id this activity was backed up as.';
 $string['privacy:metadata:jobbackup:status'] = 'The backup\'s own status.';
+$string['privacy:metadata:jobbackup:message'] = 'Why the backup failed, if it did.';
+$string['privacy:metadata:jobbackup:timecleaned'] = 'The time this backup\'s temporary files were cleaned up.';
+$string['privacy:metadata:jobresult'] = 'A record of one activity having been copied (or not) into one target course.';
+$string['privacy:metadata:jobresult:jobid'] = 'The copy job this result belongs to.';
+$string['privacy:metadata:jobresult:sourcecmid'] = 'The activity that was copied.';
+$string['privacy:metadata:jobresult:targetcourseid'] = 'The course the activity was copied into.';
+$string['privacy:metadata:jobresult:newcmid'] = 'The id of the copy, if it succeeded.';
+$string['privacy:metadata:jobresult:status'] = 'Whether the copy succeeded, was skipped, or failed.';
+$string['privacy:metadata:jobresult:message'] = 'Why the copy was skipped or failed, if it was.';
+$string['privacy:metadata:jobresult:timecreated'] = 'The time this result was recorded.';
 
 // Target course tree.
 $string['searchcourses'] = 'Search for a course';

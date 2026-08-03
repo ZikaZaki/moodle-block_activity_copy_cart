@@ -58,12 +58,42 @@ final class manager {
      * @return int The new job's id
      */
     public static function create_job(array $cart, array $targetcourseids): int {
-        global $USER;
+        global $DB, $USER;
 
+        // Atomic: an interruption between any of these three writes would otherwise leave
+        // either a job with no backup rows, or a job that never got a task queued for it -
+        // both permanently stuck with nothing to ever pick them back up.
+        $transaction = $DB->start_delegated_transaction();
         $jobid = repository::create_job((int) $USER->id, (int) $cart['sourcecourseid'], $cart, $targetcourseids);
         repository::create_job_backups($jobid, array_keys($cart['items']));
         self::queue_backup_task($jobid, (int) $USER->id);
+        $transaction->allow_commit();
+
         return $jobid;
+    }
+
+    /**
+     * Requeues the appropriate next task for every job that's been sitting in a non-terminal
+     * status for longer than $stalledafter seconds - recovers jobs whose adhoc task died
+     * without a catchable \Throwable (see create_job()'s docblock). Safe to call repeatedly:
+     * process_backups()/process_restores() only ever act on rows still marked pending, so
+     * requeuing a job that's actually still being (slowly) worked on just adds a harmless
+     * extra chunk-processing pass rather than redoing completed work.
+     *
+     * @param int $stalledafter Seconds of inactivity before a non-terminal job counts as stalled
+     * @return int How many jobs were requeued
+     */
+    public static function recover_stalled_jobs(int $stalledafter): int {
+        $recovered = 0;
+        foreach (repository::get_stalled_jobs($stalledafter) as $stalledjob) {
+            if (repository::count_pending_job_backups($stalledjob->id) > 0) {
+                self::queue_backup_task($stalledjob->id, $stalledjob->userid);
+            } else {
+                self::queue_restore_task($stalledjob->id, $stalledjob->userid);
+            }
+            $recovered++;
+        }
+        return $recovered;
     }
 
     /**

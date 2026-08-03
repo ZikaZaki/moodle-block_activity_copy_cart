@@ -37,6 +37,16 @@ async function save(baseFactory, form, courseId) {
 }
 
 /**
+ * Chains onto whichever autosave call is still in flight, so a second one
+ * never starts before the first resolves - without this, two overlapping
+ * requests (e.g. a save fired just as an earlier one's response was still
+ * in transit) can have their responses land out of order, letting the
+ * older payload silently overwrite the newer one server-side.
+ * @type {Promise}
+ */
+let pendingSave = Promise.resolve();
+
+/**
  * Schedules (debounced) an autosave of the cart form's current state - there's
  * only ever one cart on the page, so every call site sharing this one
  * module-level debounced function is exactly what's wanted (a burst of
@@ -47,7 +57,10 @@ async function save(baseFactory, form, courseId) {
  * guarantees the debounce is actually shared across all of them.
  * @type {Function}
  */
-const scheduledSave = debounce(save, AUTOSAVE_DEBOUNCE_MS);
+const scheduledSave = debounce((baseFactory, form, courseId) => {
+    pendingSave = pendingSave.then(() => save(baseFactory, form, courseId));
+    return pendingSave;
+}, AUTOSAVE_DEBOUNCE_MS);
 
 export default class Autosave {
     /**
