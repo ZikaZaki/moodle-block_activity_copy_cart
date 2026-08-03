@@ -38,7 +38,7 @@ function xmldb_block_activity_copy_cart_upgrade($oldversion) {
 
     if ($oldversion < 2026073100) {
         $table = new xmldb_table('block_activity_copy_cart_job');
-        $field = new xmldb_field('status', XMLDB_TYPE_CHAR, '30', null, XMLDB_NOTNULL, null, 'pending', 'status');
+        $field = new xmldb_field('status', XMLDB_TYPE_CHAR, '30', null, XMLDB_NOTNULL, null, 'pending', 'targetcourseids');
 
         // status was originally char(20), too short to hold 'completed_with_errors' (21 chars).
         if ($dbman->field_exists($table, $field)) {
@@ -46,6 +46,18 @@ function xmldb_block_activity_copy_cart_upgrade($oldversion) {
         }
 
         upgrade_block_savepoint(true, 2026073100, 'activity_copy_cart');
+    }
+
+    if ($oldversion < 2026080301) {
+        $table = new xmldb_table('block_activity_copy_cart_res');
+        $index = new xmldb_index('jobid_cmid_idx', XMLDB_INDEX_NOTUNIQUE, ['jobid', 'sourcecmid']);
+
+        // Supports count_results_by_cmid()'s per-cmid grouping, called once per restore chunk.
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        upgrade_block_savepoint(true, 2026080301, 'activity_copy_cart');
     }
 
     return true;

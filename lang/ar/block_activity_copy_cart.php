@@ -28,7 +28,6 @@ defined('MOODLE_INTERNAL') || die();
 
 $string['pluginname'] = 'سلة نسخ الأنشطة';
 $string['activity_copy_cart:addinstance'] = 'إضافة كتلة سلة نسخ الأنشطة';
-$string['activity_copy_cart:myaddinstance'] = 'إضافة كتلة سلة نسخ الأنشطة إلى لوحة المعلومات';
 $string['activity_copy_cart:copyactivities'] = 'نسخ الأنشطة إلى مقررات أخرى';
 $string['nopermissions'] = 'ليس لديك صلاحية لنسخ الأنشطة من هذا المقرر.';
 $string['clearcart'] = 'إفراغ الكل';
@@ -45,6 +44,10 @@ $string['selectedcourses'] = 'المقررات المستهدفة ({$a})';
 $string['cartexpired'] = 'انتهت صلاحية السلة أو أصبحت فارغة. يرجى إضافة الأنشطة إليها مرة أخرى.';
 $string['cartinvalid'] = 'السلة المُرسلة غير صالحة.';
 $string['notargetschosen'] = 'يرجى اختيار مقرر هدف واحد على الأقل.';
+$string['errortoomanytargetcourses'] = 'تم اختيار عدد كبير جدًا من المقررات المستهدفة (الحد الأقصى {$a}). يرجى اختيار عدد أقل من المقررات أو التصنيفات.';
+$string['errortoomanyitems'] = 'تم إرسال عدد كبير جدًا من العناصر (الحد الأقصى {$a}).';
+$string['errorjobtoolarge'] = 'ستُنتج عملية النسخ هذه عددًا كبيرًا جدًا من النسخ الفردية (الحد الأقصى {$a}) نظرًا لعدد الأنشطة والمقررات المستهدفة المختارة. يرجى اختيار عدد أقل من الأنشطة أو المقررات المستهدفة.';
+$string['errortargetcourselocked'] = 'هناك عملية نسخ أخرى قيد التنفيذ حاليًا إلى هذا المقرر. يرجى المحاولة مرة أخرى بعد قليل.';
 $string['badgerenamed'] = 'أُعيدت تسميته إلى: {$a}';
 $string['backtoselection'] = 'العودة إلى اختيار المقرر';
 

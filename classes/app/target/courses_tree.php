@@ -2,9 +2,31 @@
 
 namespace block_activity_copy_cart\app\target;
 
+use block_activity_copy_cart\exception\exception;
+
 
 final class courses_tree {
     private const TARGET_CAPABILITY = 'moodle/restore:restoretargetimport';
+
+    /**
+     * Maximum courses returned for one category level of the tree - bounds how much a single
+     * "expand category" click can force the server to fetch/render/send in one response
+     * (teachers with very large categories still have the search feature, which is already
+     * paginated at RESULTS_PER_PAGE in target/search.js).
+     *
+     * @var int
+     */
+    private const MAX_COURSES_PER_LEVEL = 200;
+
+    /**
+     * Maximum courses a single target selection (individually picked + whole-category expansions
+     * combined) may resolve to - protects the cron task queue from one "whole category" pick
+     * enqueueing an unbounded number of restore units (see copy\manager::MAX_TOTAL_UNITS for the
+     * other half of this cap, applied to items x courses at job-creation time).
+     *
+     * @var int
+     */
+    private const MAX_TARGET_COURSES = 1000;
 
     public static function children(int $categoryid, int $sourcecourseid): array {
         $category = $categoryid > 0
@@ -37,7 +59,7 @@ final class courses_tree {
 
     private static function course_rows(\core_course_category $category, int $sourcecourseid): array {
         $rows = [];
-        foreach ($category->get_courses(['recursive' => false]) as $course) {
+        foreach ($category->get_courses(['recursive' => false, 'limit' => self::MAX_COURSES_PER_LEVEL]) as $course) {
             if ($course->id == $sourcecourseid) {
                 continue;
             }
@@ -91,6 +113,13 @@ final class courses_tree {
         return ['courses' => $courses, 'categories' => $categories];
     }
 
+    /**
+     * Recursively expands a set of "whole category" picks into their individual course ids.
+     *
+     * @param array $categoryids
+     * @return array
+     * @throws exception If the expansion resolves to more than MAX_TARGET_COURSES courses
+     */
     public static function expand_categories(array $categoryids): array {
         $categoryids = array_unique(array_map('intval', $categoryids));
         $categoryids = array_filter($categoryids, fn($id) => $id > 0);
@@ -104,7 +133,11 @@ final class courses_tree {
             $courseids[] = $category->get_courses(['recursive' => true, 'idonly' => true]);
         }
 
-        return empty($courseids) ? [] : array_values(array_unique(array_merge(...$courseids)));
+        $expanded = empty($courseids) ? [] : array_values(array_unique(array_merge(...$courseids)));
+        if (count($expanded) > self::MAX_TARGET_COURSES) {
+            throw new exception('errortoomanytargetcourses', self::MAX_TARGET_COURSES);
+        }
+        return $expanded;
     }
 
     public static function filter(array $courseids, int $sourcecourseid): array {

@@ -18,14 +18,14 @@ async function save(baseFactory, form, courseId) {
 
     const items = cmids.map((cmid) => ({
         cmid,
-        rename: getSavedValue(`rename-hidden-${cmid}`, ''),
-        sectionmatch: getSavedValue(`sectionmatch-hidden-${cmid}`, Settings.SECTION_MATCH.NAME),
-        section: parseInt(getSavedValue(`section-hidden-${cmid}`, '0'), 10) || 0,
-        sectionname: getSavedValue(`sectionname-hidden-${cmid}`, ''),
-        sectionmissing: getSavedValue(`sectionmissing-hidden-${cmid}`, Settings.SECTION_MISSING.CREATE),
-        nameconflict: getSavedValue(`nameconflict-hidden-${cmid}`, Settings.NAME_CONFLICT.RESOLVE),
-        visibility: getSavedValue(`visibility-hidden-${cmid}`, Settings.VISIBILITY.SOURCE),
-        restrictions: getSavedValue(`restrictions-hidden-${cmid}`, '1') === '1',
+        rename: getSavedValue(form, `rename-hidden-${cmid}`, ''),
+        sectionmatch: getSavedValue(form, `sectionmatch-hidden-${cmid}`, Settings.SECTION_MATCH.NAME),
+        section: parseInt(getSavedValue(form, `section-hidden-${cmid}`, '0'), 10) || 0,
+        sectionname: getSavedValue(form, `sectionname-hidden-${cmid}`, ''),
+        sectionmissing: getSavedValue(form, `sectionmissing-hidden-${cmid}`, Settings.SECTION_MISSING.CREATE),
+        nameconflict: getSavedValue(form, `nameconflict-hidden-${cmid}`, Settings.NAME_CONFLICT.RESOLVE),
+        visibility: getSavedValue(form, `visibility-hidden-${cmid}`, Settings.VISIBILITY.SOURCE),
+        restrictions: getSavedValue(form, `restrictions-hidden-${cmid}`, '1') === '1',
     }));
 
     const ajax = baseFactory.moodle().ajax();

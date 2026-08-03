@@ -13,7 +13,11 @@ class restore_task extends \core\task\adhoc_task {
         try {
             manager::process_restores($jobid);
         } catch (\Throwable $e) {
-            mtrace('block_activity_copy_cart restore_task failed for job ' . $jobid . ': ' . $e->getMessage());
+            $message = 'block_activity_copy_cart restore_task failed for job ' . $jobid . ': ' . $e->getMessage();
+            // mtrace() alone is only seen by whoever is watching cron output live - debugging()
+            // also persists to the standard error log, so a systemic failure is discoverable later.
+            debugging($message, DEBUG_DEVELOPER);
+            mtrace($message);
             manager::mark_job_failed($jobid, $e->getMessage());
         }
     }

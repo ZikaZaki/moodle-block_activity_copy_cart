@@ -28,6 +28,29 @@
  * Custom uninstallation procedure.
  */
 function xmldb_block_activity_copy_cart_uninstall() {
+    global $CFG, $DB;
+
+    require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
+
+    // Jobs stuck pending/running at uninstall time can have backups that were created but
+    // never consumed/cleaned up (manager::cleanup_consumed_backups() only ever runs as part
+    // of a job actually finishing) - without this, those temp directories become permanently
+    // orphaned once this plugin's own tables (which track their backupids) are dropped.
+    $backups = $DB->get_records_select(
+        'block_activity_copy_cart_bkp',
+        'backupid IS NOT NULL AND timecleaned IS NULL'
+    );
+    foreach ($backups as $backup) {
+        try {
+            \backup_helper::delete_backup_dir($backup->backupid);
+        } catch (\Throwable $e) {
+            debugging(
+                'block_activity_copy_cart: failed to clean up backup dir for backupid ' .
+                $backup->backupid . ' during uninstall: ' . $e->getMessage(),
+                DEBUG_DEVELOPER
+            );
+        }
+    }
 
     return true;
 }

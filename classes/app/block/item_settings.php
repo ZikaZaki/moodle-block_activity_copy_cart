@@ -74,7 +74,7 @@ final class item_settings {
      */
     public static function sanitize(string $field, ?string $value): string {
         if (!isset(self::ALLOWED_VALUES[$field])) {
-            throw new \coding_exception("fields::sanitize() called for unknown field '{$field}'");
+            throw new \coding_exception("item_settings::sanitize() called for unknown field '{$field}'");
         }
         if ($value !== null && in_array($value, self::ALLOWED_VALUES[$field], true)) {
             return $value;

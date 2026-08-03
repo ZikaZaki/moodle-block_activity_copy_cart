@@ -18,29 +18,21 @@ export default class EventHandler {
     }
 
     /**
-     * @param {boolean} canBackupUserdata
-     * @param {boolean} canAnonymizeUserdata
      * @param {boolean} canBackup
      * @param {boolean} showCopyToCartIcon
      * @return {{course: CourseElement, block: BlockElement, queue: Object}}
      */
-    onLoad(canBackupUserdata, canAnonymizeUserdata, canBackup, showCopyToCartIcon) {
+    onLoad(canBackup, showCopyToCartIcon) {
         const component = this.#baseFactory.component();
         const courseId = component.reactive.state.course.id;
         const queue = this.#baseFactory.block().queue();
         const block = new BlockElement(this.#baseFactory, component, queue, courseId);
-        const course = new CourseElement(
-            this.#baseFactory,
-            block,
-            canBackup,
-            showCopyToCartIcon,
-            canBackupUserdata,
-            canAnonymizeUserdata
-        );
+        const course = new CourseElement(this.#baseFactory, block, canBackup, showCopyToCartIcon);
 
         block.bindDropzone();
         block.bindItemActions();
         block.bindClearCart();
+        block.bindCartFormSubmit();
 
         const cartItems = block.getElement(SELECTORS.CART_ITEMS);
         queue.initSortable(cartItems, () => queue.elements(courseId));
