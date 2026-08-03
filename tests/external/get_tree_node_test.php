@@ -2,6 +2,8 @@
 
 namespace block_activity_copy_cart\external;
 
+use core_external\external_api;
+
 
 final class get_tree_node_test extends \advanced_testcase {
     public function setUp(): void {
@@ -17,10 +19,14 @@ final class get_tree_node_test extends \advanced_testcase {
         $this->getDataGenerator()->enrol_user($teacher->id, $targetcourse->id, 'editingteacher');
         $this->setUser($teacher);
 
-        $result = get_tree_node::execute($sourcecourse->id, $category->id);
+        $raw = get_tree_node::execute($sourcecourse->id, $category->id);
+        // Routed through clean_returnvalue(), like a real web service call - courses_tree.php's
+        // own 'id' => $course->id isn't explicitly cast, so calling execute() directly could
+        // return a differently-typed id than what PARAM_INT guarantees to a real caller.
+        $result = external_api::clean_returnvalue(get_tree_node::execute_returns(), $raw);
 
         $this->assertCount(1, $result['courses']);
-        $this->assertSame($targetcourse->id, $result['courses'][0]['id']);
+        $this->assertSame((int) $targetcourse->id, $result['courses'][0]['id']);
     }
 
     public function test_excludes_the_source_course_itself(): void {
