@@ -9,6 +9,19 @@ final class courses_tree_test extends \advanced_testcase {
         $this->resetAfterTest();
     }
 
+    /**
+     * Forces a fresh read of category hierarchy data (path, parent/child, tree listings)
+     * instead of whatever core_course_category's own caches (coursecat, coursecatrecords,
+     * coursecattree) currently hold - core's own test suite does the same
+     * (course/tests/category_test.php) when a test's assertions depend on a category's
+     * hierarchy reflecting a change made moments earlier in the same test.
+     */
+    private function purge_category_caches(): void {
+        \cache_helper::purge_by_definition('core', 'coursecat');
+        \cache_helper::purge_by_definition('core', 'coursecatrecords');
+        \cache_helper::purge_by_definition('core', 'coursecattree');
+    }
+
     public function test_filter_excludes_source_and_invalid_ids(): void {
         $source = $this->getDataGenerator()->create_course();
         $target1 = $this->getDataGenerator()->create_course();
@@ -39,6 +52,7 @@ final class courses_tree_test extends \advanced_testcase {
         $child = $this->getDataGenerator()->create_category(['parent' => $parent->id]);
         $courseinparent = $this->getDataGenerator()->create_course(['category' => $parent->id]);
         $courseinchild = $this->getDataGenerator()->create_course(['category' => $child->id]);
+        $this->purge_category_caches();
 
         $result = courses_tree::expand_categories([$parent->id, $parent->id, 0, -1, 999999]);
 
@@ -55,6 +69,7 @@ final class courses_tree_test extends \advanced_testcase {
         $top = $this->getDataGenerator()->create_category();
         $mid = $this->getDataGenerator()->create_category(['parent' => $top->id]);
         $leaf = $this->getDataGenerator()->create_category(['parent' => $mid->id]);
+        $this->purge_category_caches();
         $this->assertSame([], courses_tree::ancestor_path($top->id));
         $this->assertEquals([$top->id], courses_tree::ancestor_path($mid->id));
         $this->assertEquals([$top->id, $mid->id], courses_tree::ancestor_path($leaf->id));
@@ -69,6 +84,7 @@ final class courses_tree_test extends \advanced_testcase {
         $sub = $this->getDataGenerator()->create_category(['parent' => $top->id]);
         $course = $this->getDataGenerator()->create_course(['category' => $sub->id]);
         $deletedcourseid = $course->id + 999999;
+        $this->purge_category_caches();
 
         $result = courses_tree::restore_paths([$course->id, $deletedcourseid], [$top->id]);
 
@@ -102,6 +118,7 @@ final class courses_tree_test extends \advanced_testcase {
         $source = $this->getDataGenerator()->create_course();
         $category = $this->getDataGenerator()->create_category();
         $this->getDataGenerator()->create_course(['category' => $category->id]);
+        $this->purge_category_caches();
 
         $result = courses_tree::children(0, $source->id);
 
